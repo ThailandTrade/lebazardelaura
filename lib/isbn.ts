@@ -218,13 +218,17 @@ function bnfFirst(xml: string, tag: string, code: string): string | null {
 
 async function bnfCover(ark: string): Promise<string | null> {
   const url = `https://catalogue.bnf.fr/couverture?appName=NE&idArk=${ark}&couverture=1`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
     const ct = res.headers.get("content-type") ?? "";
     // Pas de couverture → la BnF répond en HTML (et non image/*).
     return res.ok && ct.startsWith("image/") ? url : null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 

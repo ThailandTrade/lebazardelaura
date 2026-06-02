@@ -105,16 +105,30 @@ export async function getPublicBook(id: string): Promise<PublicBook | null> {
 
 // --- Admin (toutes colonnes, tous statuts) ---
 
-export async function listAdminBooks(q?: string): Promise<Book[]> {
-  if (q && q.trim()) {
-    return query<Book>(
-      `select * from books
-         where title ilike $1 or array_to_string(authors, ' ') ilike $1 or isbn ilike $1
-         order by created_at desc`,
-      [`%${q.trim()}%`],
-    );
+export async function listAdminBooks(opts: { q?: string; status?: string } = {}): Promise<Book[]> {
+  const where: string[] = [];
+  const params: unknown[] = [];
+  if (opts.q && opts.q.trim()) {
+    params.push(`%${opts.q.trim()}%`);
+    const i = params.length;
+    where.push(`(title ilike $${i} or array_to_string(authors, ' ') ilike $${i} or isbn ilike $${i})`);
   }
-  return query<Book>("select * from books order by created_at desc");
+  if (opts.status && STATUS_VALUES.includes(opts.status as BookStatus)) {
+    params.push(opts.status);
+    where.push(`status = $${params.length}`);
+  }
+  return query<Book>(
+    `select * from books ${where.length ? `where ${where.join(" and ")}` : ""} order by created_at desc`,
+    params,
+  );
+}
+
+/** Comptes par statut (pour les filtres du tableau de bord). */
+export async function countByStatus(): Promise<Record<string, number>> {
+  const rows = await query<{ status: string; n: string }>(
+    "select status::text as status, count(*)::text as n from books group by status",
+  );
+  return Object.fromEntries(rows.map((r) => [r.status, Number(r.n)]));
 }
 
 export async function getBook(id: string): Promise<Book | null> {

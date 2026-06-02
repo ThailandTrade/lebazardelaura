@@ -234,12 +234,21 @@ async function bnfCover(ark: string): Promise<string | null> {
 
 async function lookupBnf(isbn: string): Promise<IsbnLookupData | null> {
   // La BnF indexe l'ISBN tel qu'imprimé : on tente le 13 puis le 10.
+  // Un retry sur échec réseau (la BnF throttle / time out par à-coups).
   const variants = [isbn, isbn13to10(isbn)].filter((v): v is string => Boolean(v));
   let xml: string | null = null;
   for (const v of variants) {
-    xml = await fetchText(BNF_SRU + encodeURIComponent(`bib.isbn all "${v}"`));
-    if (xml && /<mxc:record/.test(xml)) break;
-    xml = null;
+    for (let attempt = 0; attempt < 2 && !xml; attempt++) {
+      const x = await fetchText(BNF_SRU + encodeURIComponent(`bib.isbn all "${v}"`));
+      if (x && /<mxc:record/.test(x)) {
+        xml = x;
+      } else if (x) {
+        break; // réponse reçue mais aucune notice pour cette variante → pas de retry
+      } else {
+        await new Promise((r) => setTimeout(r, 700)); // échec transitoire → on réessaie
+      }
+    }
+    if (xml) break;
   }
   if (!xml) return null;
 

@@ -38,6 +38,9 @@ yarn-error.log*
 /uploads/covers/*
 !/uploads/covers/.gitkeep
 
+# inventaire réel (donnée métier, importée en local)
+/Inventaire.tsv
+
 # vercel
 .vercel
 

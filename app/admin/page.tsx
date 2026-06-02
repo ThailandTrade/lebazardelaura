@@ -1,15 +1,11 @@
 import Link from "next/link";
-import { auth } from "@/auth";
 import { query } from "@/lib/db";
-import { logout } from "./actions";
 
 export const metadata = { title: "Tableau de bord — Le bazar de Laura" };
 
 type StatusCount = { status: string; n: string };
 
 export default async function AdminDashboard() {
-  const session = await auth();
-
   const counts = await query<StatusCount>(
     "select status::text as status, count(*)::text as n from books group by status",
   );
@@ -18,14 +14,9 @@ export default async function AdminDashboard() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-8">
-      <header className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Tableau de bord</h1>
-          <p className="text-sm text-neutral-500">{session?.user?.email}</p>
-        </div>
-        <form action={logout}>
-          <button className="text-sm text-neutral-500 underline">Se déconnecter</button>
-        </form>
+      <header className="mb-8">
+        <h1 className="text-2xl font-semibold">Tableau de bord</h1>
+        <p className="text-sm text-neutral-500">Le bazar de Laura — gestion du stock</p>
       </header>
 
       <section className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -39,7 +30,7 @@ export default async function AdminDashboard() {
         href="/admin/scan"
         className="inline-block rounded bg-neutral-900 px-5 py-3 text-white"
       >
-        + Scanner un livre
+        + Ajouter un livre
       </Link>
     </main>
   );

@@ -4,7 +4,6 @@ import { Pool, type QueryResultRow } from "pg";
 // En dev, le HMR ré-évalue les modules : on mémorise le pool sur globalThis
 // pour ne pas accumuler les pools / connexions à chaque rechargement.
 declare global {
-  // eslint-disable-next-line no-var
   var __bazarPool: Pool | undefined;
 }
 

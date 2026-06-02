@@ -20,6 +20,7 @@ type FormState = {
   condition: string;
   status: string;
   price: string;
+  quantity: string;
   notes: string;
   source: string;
 };
@@ -39,6 +40,7 @@ export type BookFormInitial = Partial<{
   condition: string;
   status: string;
   price: string | number;
+  quantity: number | string;
   notes: string | null;
   source: string | null;
 }>;
@@ -59,6 +61,7 @@ function toState(init: BookFormInitial): FormState {
     condition: init.condition ?? "bon",
     status: init.status ?? "disponible",
     price: init.price != null ? String(init.price) : "",
+    quantity: init.quantity != null ? String(init.quantity) : "1",
     notes: init.notes ?? "",
     source: init.source ?? "manuel",
   };
@@ -253,6 +256,16 @@ export function BookForm({
             </button>
           ))}
         </div>
+      </Field>
+
+      <Field label="Quantité (nombre d'exemplaires)">
+        <input
+          name="quantity"
+          inputMode="numeric"
+          value={s.quantity}
+          onChange={(e) => set("quantity", e.target.value)}
+          className={`${input} max-w-[8rem]`}
+        />
       </Field>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

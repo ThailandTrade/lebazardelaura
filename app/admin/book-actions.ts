@@ -6,6 +6,7 @@ import {
   createBook,
   updateBook,
   setStatus,
+  adjustQuantity,
   deleteBook,
   isValidCategory,
   isValidCondition,
@@ -36,6 +37,9 @@ function parseBookInput(form: FormData): BookInput {
   const pageRaw = str(form, "page_count");
   const page_count = pageRaw && Number.isFinite(Number(pageRaw)) ? parseInt(pageRaw, 10) : null;
 
+  const qtyRaw = Number(form.get("quantity"));
+  const quantity = Number.isFinite(qtyRaw) && qtyRaw >= 0 ? Math.floor(qtyRaw) : 1;
+
   const isbnRaw = str(form, "isbn");
   const category = str(form, "category") ?? "autre";
   const condition = str(form, "condition") ?? "bon";
@@ -56,6 +60,7 @@ function parseBookInput(form: FormData): BookInput {
     condition: isValidCondition(condition) ? condition : "bon",
     price,
     status: isValidStatus(status) ? status : "disponible",
+    quantity,
     notes: str(form, "notes"),
     source: str(form, "source"),
   };
@@ -80,6 +85,12 @@ export async function updateBookAction(id: string, form: FormData): Promise<void
 
 export async function quickStatusAction(id: string, status: BookStatus): Promise<void> {
   await setStatus(id, status);
+  revalidatePath("/admin");
+  revalidatePath("/catalogue");
+}
+
+export async function adjustQuantityAction(id: string, delta: number): Promise<void> {
+  await adjustQuantity(id, delta);
   revalidatePath("/admin");
   revalidatePath("/catalogue");
 }

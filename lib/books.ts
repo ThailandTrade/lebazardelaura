@@ -24,6 +24,7 @@ export type Book = {
   condition: BookCondition;
   price: string; // numeric → string côté pg
   status: BookStatus;
+  quantity: number;
   notes: string | null;
   source: string | null;
   created_at: string;
@@ -48,13 +49,14 @@ export type BookInput = {
   condition: BookCondition;
   price: number;
   status: BookStatus;
+  quantity: number;
   notes: string | null;
   source: string | null;
 };
 
 const PUBLIC_COLUMNS = `id, isbn, title, subtitle, authors, publisher, published_date,
   description, cover_url, language, page_count, category, condition, price, status,
-  source, created_at, updated_at`;
+  quantity, source, created_at, updated_at`;
 
 export type CatalogueFilter = {
   category?: string;
@@ -65,7 +67,7 @@ export type CatalogueFilter = {
 
 /** Catalogue public : uniquement disponible / réservé, sans les notes. */
 export async function listPublicBooks(filter: CatalogueFilter = {}): Promise<PublicBook[]> {
-  const where: string[] = ["status in ('disponible','reserve')"];
+  const where: string[] = ["status in ('disponible','reserve')", "quantity > 0"];
   const params: unknown[] = [];
 
   if (filter.category && CATEGORY_VALUES.includes(filter.category as BookCategory)) {
@@ -97,7 +99,7 @@ export async function listPublicBooks(filter: CatalogueFilter = {}): Promise<Pub
 export async function getPublicBook(id: string): Promise<PublicBook | null> {
   const rows = await query<PublicBook>(
     `select ${PUBLIC_COLUMNS} from books
-       where id = $1 and status in ('disponible','reserve')`,
+       where id = $1 and status in ('disponible','reserve') and quantity > 0`,
     [id],
   );
   return rows[0] ?? null;
@@ -145,14 +147,14 @@ export async function createBook(input: BookInput): Promise<string> {
   const rows = await query<{ id: string }>(
     `insert into books
        (isbn, title, subtitle, authors, publisher, published_date, description,
-        cover_url, language, page_count, category, condition, price, status, notes, source)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+        cover_url, language, page_count, category, condition, price, status, notes, source, quantity)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
      returning id`,
     [
       input.isbn, input.title, input.subtitle, input.authors, input.publisher,
       input.published_date, input.description, input.cover_url, input.language,
       input.page_count, input.category, input.condition, input.price, input.status,
-      input.notes, input.source,
+      input.notes, input.source, input.quantity,
     ],
   );
   return rows[0].id;
@@ -163,13 +165,13 @@ export async function updateBook(id: string, input: BookInput): Promise<void> {
     `update books set
        isbn=$2, title=$3, subtitle=$4, authors=$5, publisher=$6, published_date=$7,
        description=$8, cover_url=$9, language=$10, page_count=$11, category=$12,
-       condition=$13, price=$14, status=$15, notes=$16, source=$17
+       condition=$13, price=$14, status=$15, notes=$16, source=$17, quantity=$18
      where id=$1`,
     [
       id, input.isbn, input.title, input.subtitle, input.authors, input.publisher,
       input.published_date, input.description, input.cover_url, input.language,
       input.page_count, input.category, input.condition, input.price, input.status,
-      input.notes, input.source,
+      input.notes, input.source, input.quantity,
     ],
   );
 }
@@ -177,6 +179,11 @@ export async function updateBook(id: string, input: BookInput): Promise<void> {
 export async function setStatus(id: string, status: BookStatus): Promise<void> {
   if (!STATUS_VALUES.includes(status)) throw new Error("Statut invalide");
   await query("update books set status = $2 where id = $1", [id, status]);
+}
+
+/** Ajuste la quantité (jamais en dessous de 0). */
+export async function adjustQuantity(id: string, delta: number): Promise<void> {
+  await query("update books set quantity = greatest(0, quantity + $2) where id = $1", [id, delta]);
 }
 
 export async function deleteBook(id: string): Promise<void> {

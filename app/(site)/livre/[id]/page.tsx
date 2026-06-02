@@ -54,6 +54,10 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
             )}
           </div>
 
+          {book.quantity > 1 && (
+            <p className="mt-2 text-sm text-muted">Plusieurs exemplaires disponibles.</p>
+          )}
+
           <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
             <Meta label="État" value={conditionLabel(book.condition)} />
             {book.publisher && <Meta label="Éditeur" value={book.publisher} />}

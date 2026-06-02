@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listAdminBooks, countByStatus } from "@/lib/books";
 import { formatPrice, categoryLabel, STATUSES } from "@/lib/constants";
 import { StatusControl } from "./status-control";
+import { QuantityControl } from "./quantity-control";
 
 export const metadata = { title: "Stock" };
 
@@ -40,7 +41,7 @@ export default async function AdminDashboard(props: {
       </form>
 
       {/* Filtres statut (défilables horizontalement) */}
-      <div className="mb-4 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {filters.map((f) => {
           const active = (status ?? "") === f.value;
           return (
@@ -64,8 +65,8 @@ export default async function AdminDashboard(props: {
       ) : (
         <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface/50">
           {books.map((b) => (
-            <li key={b.id} className="flex items-center gap-3 px-3 py-2.5">
-              <Link href={`/admin/livre/${b.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+            <li key={b.id} className="px-3 py-2.5">
+              <Link href={`/admin/livre/${b.id}`} className="flex min-w-0 items-center gap-3">
                 <span className="h-16 w-11 shrink-0 overflow-hidden rounded bg-surface-2 ring-1 ring-line">
                   {b.cover_url && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -79,7 +80,10 @@ export default async function AdminDashboard(props: {
                   </span>
                 </span>
               </Link>
-              <StatusControl id={b.id} status={b.status} />
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                <QuantityControl id={b.id} quantity={b.quantity} />
+                <StatusControl id={b.id} status={b.status} />
+              </div>
             </li>
           ))}
         </ul>

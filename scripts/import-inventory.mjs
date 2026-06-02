@@ -167,11 +167,11 @@ try {
     await pool.query(
       `insert into books
         (isbn,title,authors,publisher,published_date,cover_url,language,page_count,
-         category,condition,price,status,notes,source)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'bon',$10,'disponible',$11,'inventaire')`,
+         category,condition,price,status,notes,source,quantity)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'bon',$10,'disponible',$11,'inventaire',$12)`,
       [
         r.isbn, r.title, r.authors, e.publisher ?? null, e.published_date ?? null,
-        e.cover ?? null, language, e.page_count ?? null, category, r.price, notes,
+        e.cover ?? null, language, e.page_count ?? null, category, r.price, notes, r.stock,
       ],
     );
     n++;

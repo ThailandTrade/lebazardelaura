@@ -40,6 +40,7 @@ create table if not exists books (
   condition      book_condition default 'bon',
   price          numeric(8,2) not null,         -- en THB
   status         book_status default 'disponible',
+  quantity       int not null default 1,        -- nombre d'exemplaires
   notes          text,                          -- notes INTERNES (jamais exposées publiquement)
   source         text,                          -- 'google_books' | 'open_library' | 'manuel'
   created_at     timestamptz default now(),

@@ -3,9 +3,10 @@
 //   node --env-file=.env.local scripts/backfill-covers.mjs [--concurrency=N] [--delay=ms]
 //
 // Stratégie par livre (s'arrête au premier succès) :
-//   1. Google Books par ISBN  — seulement si GOOGLE_BOOKS_API_KEY est défini
-//   2. BnF : notice SRU (ISBN-13/10) -> couverture via ARK (fonds FR, dépôt légal)
-//   3. Open Library : recherche par titre + auteur (cover_i)
+//   1. Dilicom/epagine : couverture éditeur par EAN-13 (FR, sans quota) — prioritaire
+//   2. Google Books par ISBN  — seulement si GOOGLE_BOOKS_API_KEY est défini
+//   3. BnF : notice SRU (ISBN-13/10) -> couverture via ARK (fonds FR, dépôt légal)
+//   4. Open Library : recherche par titre + auteur (cover_i)
 //
 // Idempotent : ne touche qu'aux livres dont cover_url est NULL. Relançable.
 // IMPORTANT : la BnF bloque l'IP si on l'interroge trop vite. Sans clé Google,
@@ -23,8 +24,10 @@ const arg = (name, def) => {
   return m ? Number(m.split("=")[1]) : def;
 };
 // Sans clé on dépend de la BnF → on reste doux (sinon blocage IP).
-const CONCURRENCY = arg("concurrency", KEY ? 8 : 2);
-const DELAY = arg("delay", KEY ? 0 : 400);
+// epagine traite la majorité (sans quota) → la BnF n'est sollicitée que pour les
+// rares cas restants, on peut donc être un peu moins lent qu'avant.
+const CONCURRENCY = arg("concurrency", KEY ? 8 : 5);
+const DELAY = arg("delay", KEY ? 0 : 150);
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const UA = "LeBazarDeLaura/1.0 (vitrine librairie d'occasion; contact: emmanuel.riff@gmail.com)";
@@ -54,6 +57,18 @@ async function googleCover(isbn) {
     const il = j.items?.[0]?.volumeInfo?.imageLinks;
     return cleanGoogle(il?.thumbnail || il?.smallThumbnail);
   } catch { return null; }
+}
+
+// Dilicom / epagine — couverture éditeur par EAN-13, sans clé ni quota (fonds FR).
+// Placeholder = PNG 2687o → on n'accepte que les JPEG.
+async function epagineCover(isbn) {
+  if (!isbn || isbn.length !== 13) return null;
+  const url = `https://images.epagine.fr/${isbn.slice(-3)}/${isbn}_1_75.jpg`;
+  try {
+    const r = await safeFetch(url, { headers: { Range: "bytes=0-0" } });
+    if (r.ok && (r.headers.get("content-type") || "").includes("jpeg")) return url;
+  } catch { /* suivant */ }
+  return null;
 }
 
 function isbn13to10(i13) {
@@ -125,7 +140,10 @@ let updated = 0;
 try {
   await poolMap(rows, CONCURRENCY, DELAY, async (b) => {
     const cover =
-      (await googleCover(b.isbn)) || (await bnfCover(b.isbn)) || (await olSearchCover(b.title, b.authors));
+      (await epagineCover(b.isbn)) ||
+      (await googleCover(b.isbn)) ||
+      (await bnfCover(b.isbn)) ||
+      (await olSearchCover(b.title, b.authors));
     if (cover) {
       await pool.query("update books set cover_url = $2 where id = $1", [b.id, cover]);
       updated++;

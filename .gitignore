@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# couvertures uploadées par Laura (on versionne le dossier, pas son contenu)
+/uploads/covers/*
+!/uploads/covers/.gitkeep
 
 # vercel
 .vercel

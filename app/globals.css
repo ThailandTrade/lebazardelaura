@@ -1,27 +1,64 @@
 @import "tailwindcss";
 
+/* — Le bazar de Laura — direction artistique « librairie indépendante »
+   Papier crème chaud, encre brune, UN accent terracotta. */
 :root {
-  --background: #fbf8f1; /* papier crème chaud */
-  --foreground: #2b2622; /* encre chaude */
-  --accent: #a6402d; /* terracotta */
-  --muted: #6f6862;
+  --background: #f4ede0; /* papier crème */
+  --surface: #fbf6ec; /* carte, un cran plus clair */
+  --surface-2: #ece3d2; /* bandeaux, zones douces */
+  --foreground: #2b251d; /* encre chaude */
+  --muted: #756a5a; /* texte secondaire */
+  --accent: #ad4a2b; /* terracotta */
+  --accent-dark: #8c3a20; /* terracotta survol */
+  --line: rgba(43, 37, 29, 0.14);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
   --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-line: var(--line);
   --font-sans: var(--font-inter);
   --font-serif: var(--font-fraunces);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  /* léger grain papier, très subtil, derrière le contenu */
+  background-image: radial-gradient(rgba(43, 37, 29, 0.025) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
 }
 
 a {
   color: inherit;
+}
+
+/* focus clavier discret, dans l'accent */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* petit filet ornemental sous les titres de section */
+@utility rule-accent {
+  &::after {
+    content: "";
+    display: block;
+    width: 2.5rem;
+    height: 2px;
+    margin-top: 0.6rem;
+    background: var(--accent);
+  }
 }

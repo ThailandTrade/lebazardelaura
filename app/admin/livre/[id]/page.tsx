@@ -16,14 +16,14 @@ export default async function EditBookPage(props: { params: Promise<{ id: string
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      <Link href="/admin" className="text-sm text-neutral-500 hover:underline">
+      <Link href="/admin" className="text-sm text-muted underline-offset-4 hover:underline">
         ← Tableau de bord
       </Link>
-      <h1 className="mb-6 mt-2 text-2xl font-semibold">Modifier le livre</h1>
+      <h1 className="mb-6 mt-2 font-serif text-3xl tracking-tight">Modifier le livre</h1>
 
       <BookForm action={update} initial={book} submitLabel="Mettre à jour" />
 
-      <form action={remove} className="mt-8 border-t border-neutral-200 pt-6">
+      <form action={remove} className="mt-8 border-t border-line pt-6">
         <button className="text-sm text-red-600 underline">Supprimer ce livre</button>
       </form>
     </main>

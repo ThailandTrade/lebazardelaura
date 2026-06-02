@@ -63,7 +63,7 @@ function toState(init: BookFormInitial): FormState {
   };
 }
 
-const input = "w-full rounded border border-neutral-300 px-3 py-2 text-base";
+const input = "w-full rounded-md border border-line bg-surface px-3 py-2 text-base";
 
 export function BookForm({
   action,
@@ -134,7 +134,7 @@ export function BookForm({
   return (
     <form action={action} className="flex flex-col gap-5">
       {/* Recherche ISBN */}
-      <div className="rounded-lg border border-neutral-200 p-4">
+      <div className="rounded-lg border border-line bg-surface-2/60 p-4">
         <label className="mb-1 block text-sm font-medium">ISBN (code-barres)</label>
         <div className="flex gap-2">
           <input
@@ -149,7 +149,7 @@ export function BookForm({
             type="button"
             onClick={lookup}
             disabled={lookingUp || !s.isbn.trim()}
-            className="shrink-0 rounded bg-neutral-900 px-4 py-2 text-white disabled:opacity-50"
+            className="shrink-0 rounded-md bg-foreground px-4 py-2 text-white transition hover:bg-accent disabled:opacity-50"
           >
             {lookingUp ? "…" : "Rechercher"}
           </button>
@@ -159,18 +159,18 @@ export function BookForm({
 
       {/* Couverture */}
       <div className="flex gap-4">
-        <div className="h-40 w-28 shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-50">
+        <div className="h-40 w-28 shrink-0 overflow-hidden rounded-md border border-line bg-surface-2">
           {s.cover_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={s.cover_url} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center text-xs text-neutral-400">
+            <div className="flex h-full items-center justify-center text-xs text-muted">
               Pas de couverture
             </div>
           )}
         </div>
         <div className="flex flex-col justify-end gap-2">
-          <label className="cursor-pointer rounded border border-neutral-300 px-3 py-2 text-sm">
+          <label className="cursor-pointer rounded-md border border-line bg-surface px-3 py-2 text-sm transition hover:bg-surface-2">
             {uploading ? "Envoi…" : "Prendre / choisir une photo"}
             <input
               type="file"
@@ -235,8 +235,8 @@ export function BookForm({
               key={p}
               type="button"
               onClick={() => set("price", String(p))}
-              className={`rounded-full border px-4 py-1 text-sm ${
-                s.price === String(p) ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"
+              className={`rounded-full border px-4 py-1 text-sm transition ${
+                s.price === String(p) ? "border-accent bg-accent text-white" : "border-line hover:border-accent"
               }`}
             >
               {p}฿
@@ -270,7 +270,7 @@ export function BookForm({
         <textarea name="notes" rows={2} value={s.notes} onChange={(e) => set("notes", e.target.value)} className={input} />
       </Field>
 
-      <button type="submit" className="rounded bg-neutral-900 px-5 py-3 text-base font-medium text-white">
+      <button type="submit" className="rounded-md bg-accent px-5 py-3 text-base font-medium text-white transition hover:bg-accent-dark">
         {submitLabel}
       </button>
     </form>

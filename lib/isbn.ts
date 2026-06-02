@@ -1,6 +1,6 @@
 // Lookup des métadonnées d'un livre à partir de l'ISBN.
-// Cascade : Google Books → Open Library → null. On s'arrête au premier succès.
-// Toujours côté serveur (évite le CORS, centralise les fallbacks).
+// Cascade : Google Books → BnF (SRU/UNIMARC) → Open Library → null.
+// On s'arrête au premier succès. Toujours côté serveur (CORS + fallbacks centralisés).
 
 export type IsbnLookupData = {
   isbn: string;
@@ -15,9 +15,11 @@ export type IsbnLookupData = {
   page_count: number | null;
 };
 
+export type IsbnSource = "google_books" | "bnf" | "open_library";
+
 export type IsbnLookupResult = {
   found: boolean;
-  source: "google_books" | "open_library" | null;
+  source: IsbnSource | null;
   data: IsbnLookupData | null;
 };
 
@@ -31,6 +33,16 @@ export function normalizeIsbn(raw: string): string | null {
   const cleaned = raw.replace(/[\s-]/g, "").toUpperCase();
   if (!/^(\d{9}[\dX]|\d{13})$/.test(cleaned)) return null;
   return cleaned;
+}
+
+/** Convertit un ISBN-13 préfixé 978 en ISBN-10 (avec clé de contrôle). */
+export function isbn13to10(isbn13: string): string | null {
+  if (!/^978\d{10}$/.test(isbn13)) return null;
+  const core = isbn13.slice(3, 12);
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += (10 - i) * Number(core[i]);
+  const check = (11 - (sum % 11)) % 11;
+  return core + (check === 10 ? "X" : String(check));
 }
 
 async function fetchJson(url: string): Promise<unknown | null> {
@@ -157,10 +169,124 @@ async function lookupOpenLibrary(isbn: string): Promise<IsbnLookupData | null> {
   };
 }
 
+// --- BnF (SRU / UNIMARC) : filet pour le fonds FR (dépôt légal) ---
+
+const BNF_SRU =
+  "https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&maximumRecords=1&query=";
+
+async function fetchText(url: string): Promise<string | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8_000);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    return res.ok ? await res.text() : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function decodeXml(s: string): string {
+  return s
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .trim();
+}
+
+/** Blocs internes de tous les datafields d'un tag UNIMARC (marcxchange BnF). */
+function bnfDatafields(xml: string, tag: string): string[] {
+  const re = new RegExp(`<mxc:datafield[^>]*tag="${tag}"[^>]*>([\\s\\S]*?)</mxc:datafield>`, "g");
+  const out: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(xml))) out.push(m[1]);
+  return out;
+}
+function bnfSub(block: string, code: string): string | null {
+  const m = block.match(new RegExp(`<mxc:subfield code="${code}">([\\s\\S]*?)</mxc:subfield>`));
+  return m ? decodeXml(m[1]) : null;
+}
+function bnfFirst(xml: string, tag: string, code: string): string | null {
+  const f = bnfDatafields(xml, tag)[0];
+  return f ? bnfSub(f, code) : null;
+}
+
+async function bnfCover(ark: string): Promise<string | null> {
+  const url = `https://catalogue.bnf.fr/couverture?appName=NE&idArk=${ark}&couverture=1`;
+  try {
+    const res = await fetch(url);
+    const ct = res.headers.get("content-type") ?? "";
+    // Pas de couverture → la BnF répond en HTML (et non image/*).
+    return res.ok && ct.startsWith("image/") ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+async function lookupBnf(isbn: string): Promise<IsbnLookupData | null> {
+  // La BnF indexe l'ISBN tel qu'imprimé : on tente le 13 puis le 10.
+  const variants = [isbn, isbn13to10(isbn)].filter((v): v is string => Boolean(v));
+  let xml: string | null = null;
+  for (const v of variants) {
+    xml = await fetchText(BNF_SRU + encodeURIComponent(`bib.isbn all "${v}"`));
+    if (xml && /<mxc:record/.test(xml)) break;
+    xml = null;
+  }
+  if (!xml) return null;
+
+  const title = bnfFirst(xml, "200", "a");
+  if (!title) return null;
+
+  const authors: string[] = [];
+  for (const tag of ["700", "701", "702"]) {
+    for (const f of bnfDatafields(xml, tag)) {
+      const surname = bnfSub(f, "a");
+      const forename = bnfSub(f, "b");
+      const name = [forename, surname].filter(Boolean).join(" ").trim(); // « Prénom Nom »
+      if (name) authors.push(name);
+    }
+  }
+  if (authors.length === 0) {
+    const resp = bnfFirst(xml, "200", "f"); // mention de responsabilité
+    if (resp) authors.push(...resp.split(";").map((a) => a.trim()).filter(Boolean));
+  }
+
+  const pagesRaw = bnfFirst(xml, "215", "a");
+  // « 1 vol. (191 p.) » → on veut le nombre suivi de « p », sinon le premier nombre.
+  const pagesMatch = pagesRaw?.match(/(\d+)\s*p/i) ?? pagesRaw?.match(/(\d+)/);
+  const lang = bnfFirst(xml, "101", "a")?.toLowerCase();
+  const language = lang ? (lang.startsWith("fre") ? "fr" : lang.startsWith("eng") ? "en" : lang.slice(0, 2)) : null;
+  const dateRaw = bnfFirst(xml, "210", "d");
+
+  const arkMatch = xml.match(/id="(ark:[^"]+)"/);
+  const cover_url = arkMatch ? await bnfCover(arkMatch[1]) : null;
+
+  return {
+    isbn,
+    title,
+    subtitle: bnfFirst(xml, "200", "e"),
+    authors,
+    publisher: bnfFirst(xml, "210", "c"),
+    published_date: dateRaw ? dateRaw.replace(/^(DL|cop\.)\s*/i, "").replace(/[[\].]/g, "").trim() : null,
+    description: bnfFirst(xml, "330", "a"),
+    cover_url,
+    language,
+    page_count: pagesMatch ? parseInt(pagesMatch[1], 10) : null,
+  };
+}
+
 /** Cascade complète. Renvoie toujours un résultat normalisé. */
 export async function lookupIsbn(isbn: string): Promise<IsbnLookupResult> {
   const google = await lookupGoogleBooks(isbn);
   if (google) return { found: true, source: "google_books", data: google };
+
+  const bnf = await lookupBnf(isbn);
+  if (bnf) return { found: true, source: "bnf", data: bnf };
 
   const openlib = await lookupOpenLibrary(isbn);
   if (openlib) return { found: true, source: "open_library", data: openlib };

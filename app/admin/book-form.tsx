@@ -108,7 +108,9 @@ export function BookForm({
           cover_url: d.cover_url ?? prev.cover_url,
           source: result.source ?? "manuel",
         }));
-        setLookupMsg(`Infos récupérées (${result.source === "google_books" ? "Google Books" : "Open Library"}).`);
+        const sourceLabel =
+          result.source === "google_books" ? "Google Books" : result.source === "bnf" ? "BnF" : "Open Library";
+        setLookupMsg(`Infos récupérées (${sourceLabel}).`);
       } catch {
         setLookupMsg("Erreur réseau pendant la recherche.");
       }

@@ -4,7 +4,8 @@
 //
 // Stratégie par livre (s'arrête au premier succès) :
 //   1. Google Books par ISBN  — seulement si GOOGLE_BOOKS_API_KEY est défini
-//   2. Open Library : recherche par titre + auteur (cover_i)
+//   2. BnF : notice SRU (ISBN-13/10) -> couverture via ARK (fonds FR, dépôt légal)
+//   3. Open Library : recherche par titre + auteur (cover_i)
 //
 // Idempotent : ne touche qu'aux livres dont cover_url est NULL. Relançable.
 
@@ -31,6 +32,31 @@ async function googleCover(isbn) {
     const il = j.items?.[0]?.volumeInfo?.imageLinks;
     return cleanGoogle(il?.thumbnail || il?.smallThumbnail);
   } catch { return null; }
+}
+
+function isbn13to10(i13) {
+  if (!/^978\d{10}$/.test(i13)) return null;
+  const core = i13.slice(3, 12);
+  let s = 0; for (let k = 0; k < 9; k++) s += (10 - k) * Number(core[k]);
+  const c = (11 - (s % 11)) % 11; return core + (c === 10 ? "X" : String(c));
+}
+
+// BnF : notice via SRU (ISBN-13 puis ISBN-10), couverture via l'ARK (si image).
+async function bnfCover(isbn) {
+  if (!isbn) return null;
+  const SRU = "https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&maximumRecords=1&query=";
+  for (const v of [isbn, isbn13to10(isbn)].filter(Boolean)) {
+    try {
+      const r = await fetch(SRU + encodeURIComponent(`bib.isbn all "${v}"`));
+      if (!r.ok) continue;
+      const ark = (await r.text()).match(/id="(ark:[^"]+)"/);
+      if (!ark) continue;
+      const url = `https://catalogue.bnf.fr/couverture?appName=NE&idArk=${ark[1]}&couverture=1`;
+      const c = await fetch(url);
+      if (c.ok && (c.headers.get("content-type") || "").startsWith("image/")) return url;
+    } catch { /* suivant */ }
+  }
+  return null;
 }
 
 async function olSearchCover(title, authors) {
@@ -68,8 +94,9 @@ console.log(`Source Google Books : ${KEY ? "OUI (clé présente)" : "non (pas de
 
 let updated = 0;
 try {
-  await poolMap(rows, KEY ? 6 : 8, async (b) => {
-    const cover = (await googleCover(b.isbn)) || (await olSearchCover(b.title, b.authors));
+  await poolMap(rows, KEY ? 6 : 6, async (b) => {
+    const cover =
+      (await googleCover(b.isbn)) || (await bnfCover(b.isbn)) || (await olSearchCover(b.title, b.authors));
     if (cover) {
       await pool.query("update books set cover_url = $2 where id = $1", [b.id, cover]);
       updated++;

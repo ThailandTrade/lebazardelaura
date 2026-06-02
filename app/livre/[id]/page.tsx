@@ -59,6 +59,7 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
             {book.publisher && <Meta label="Éditeur" value={book.publisher} />}
             {book.published_date && <Meta label="Parution" value={book.published_date} />}
             {book.page_count ? <Meta label="Pages" value={String(book.page_count)} /> : null}
+            {book.isbn && <Meta label="ISBN" value={book.isbn} />}
           </dl>
 
           <div className="mt-8">

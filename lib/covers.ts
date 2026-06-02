@@ -126,6 +126,20 @@ export async function findCoverCandidates(
       const m = txt?.match(/"thumbnail_url":"([^"]+)"/);
       if (m) add(cleanGoogle(m[1]), "Google Books");
     })(),
+
+    // Google Images via l'API Custom Search (si configurée) : couvre les livres
+    // FR absents des autres bases (sites marchands indexés par Google Images).
+    (async () => {
+      const key = process.env.GOOGLE_SEARCH_API_KEY || process.env.GOOGLE_BOOKS_API_KEY;
+      const cx = process.env.GOOGLE_CSE_ID;
+      if (!key || !cx) return;
+      const j = await getJson<{ items?: { link?: string }[] }>(
+        `https://www.googleapis.com/customsearch/v1?key=${key}&cx=${cx}&searchType=image&num=8&q=${encodeURIComponent(
+          `${isbn} ${title ?? ""} couverture`,
+        )}`,
+      );
+      for (const it of j?.items ?? []) add(it.link ?? null, "Google Images");
+    })(),
   ]);
 
   return out.slice(0, 12);

@@ -67,6 +67,17 @@ export async function findCoverCandidates(
   const variants = [isbn, isbn13to10(isbn)].filter((v): v is string => Boolean(v));
 
   await Promise.all([
+    // Dilicom / epagine — couvertures éditeur par EAN-13, sans clé ni quota.
+    // Excellent pour le fonds FR. Placeholder = PNG 2687o → on exige un JPEG.
+    (async () => {
+      if (isbn.length !== 13) return;
+      const url = `https://images.epagine.fr/${isbn.slice(-3)}/${isbn}_1_75.jpg`;
+      const res = await timed(url, { method: "GET", headers: { Range: "bytes=0-0" } });
+      if (res && res.ok && (res.headers.get("content-type") ?? "").includes("jpeg")) {
+        add(url, "Librairie");
+      }
+    })(),
+
     // Open Library — couverture directe par ISBN (13 puis 10)
     ...variants.map(async (v) => {
       const base = `https://covers.openlibrary.org/b/isbn/${v}-L.jpg`;
@@ -142,5 +153,7 @@ export async function findCoverCandidates(
     })(),
   ]);
 
+  const order = ["Librairie", "BnF", "Google Books", "Open Library", "Google Images"];
+  out.sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source));
   return out.slice(0, 12);
 }

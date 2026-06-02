@@ -1,26 +1,22 @@
-// Service worker minimal : installabilité PWA + coque hors-ligne légère.
-const CACHE = "bazar-admin-v1";
-const SHELL = ["/admin", "/admin/scan"];
+// Service worker minimal pour l'installabilité PWA.
+// IMPORTANT : on n'intercepte PAS les navigations — mettre en cache le HTML d'une
+// app Next rendue côté serveur provoque des incohérences d'hydratation entre builds.
+const CACHE = "bazar-admin-v2";
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}));
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))),
+    (async () => {
+      // Purge tout cache hérité (ancienne version qui mettait le HTML en cache).
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      await self.clients.claim();
+    })(),
   );
-  self.clients.claim();
 });
 
-self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  if (req.method !== "GET") return;
-  // Navigations : réseau d'abord, repli sur la coque en cache si hors-ligne.
-  if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req).catch(() => caches.match(req).then((r) => r || caches.match("/admin"))),
-    );
-  }
-});
+// Handler présent (requis pour l'installabilité) mais en simple passthrough réseau.
+self.addEventListener("fetch", () => {});

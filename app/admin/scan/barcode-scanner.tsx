@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 import type { IScannerControls } from "@zxing/browser";
@@ -15,81 +15,74 @@ function hints() {
   return h;
 }
 
+function errorMessage(e: unknown): string {
+  if (typeof window !== "undefined" && !window.isSecureContext) {
+    return "Connexion non sécurisée : la caméra exige HTTPS.";
+  }
+  const name = (e as { name?: string })?.name ?? "";
+  if (name === "NotAllowedError")
+    return "Accès caméra refusé. Autorise la caméra pour ce site (icône cadenas → Autorisations), puis réessaie.";
+  if (name === "NotFoundError") return "Aucune caméra détectée sur l'appareil.";
+  if (name === "NotReadableError")
+    return "Caméra déjà utilisée par une autre application. Ferme-la puis réessaie.";
+  return `Impossible d'ouvrir la caméra (${name || "erreur inconnue"}).`;
+}
+
 type Status = "init" | "running" | "error";
 
 // Scanner de code-barres (EAN-13 = ISBN-13), caméra arrière.
-// getUserMedia explicite + lecture forcée (autoplay mobile capricieux) + décodage zxing.
+// zxing gère getUserMedia + lecture + décodage en un seul appel (pas de double play()).
 export function BarcodeScanner({ onDetected }: { onDetected: (code: string) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const controlsRef = useRef<IScannerControls | null>(null);
-  const doneRef = useRef(false);
-
+  const onDetectedRef = useRef(onDetected);
   const [status, setStatus] = useState<Status>("init");
   const [message, setMessage] = useState("Démarrage de la caméra…");
-
-  const stopAll = useCallback(() => {
-    controlsRef.current?.stop();
-    controlsRef.current = null;
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-  }, []);
-
-  const start = useCallback(async () => {
-    if (typeof window !== "undefined" && !window.isSecureContext) {
-      setStatus("error");
-      setMessage("Connexion non sécurisée : la caméra exige HTTPS.");
-      return;
-    }
-    try {
-      stopAll();
-      doneRef.current = false;
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      const video = videoRef.current;
-      if (!video) return;
-      video.srcObject = stream;
-      video.setAttribute("playsinline", "true");
-      try {
-        await video.play();
-      } catch {
-        // autoplay bloqué : il faut un geste utilisateur → bouton « Activer la caméra »
-        setStatus("error");
-        setMessage("Touche « Activer la caméra » pour démarrer.");
-        return;
-      }
-      setStatus("running");
-
-      const reader = new BrowserMultiFormatReader(hints());
-      controlsRef.current = await reader.decodeFromVideoElement(video, (result) => {
-        if (result && !doneRef.current) {
-          doneRef.current = true;
-          onDetected(result.getText());
-        }
-      });
-    } catch (e: unknown) {
-      const name = (e as { name?: string })?.name ?? "";
-      setStatus("error");
-      setMessage(
-        name === "NotAllowedError"
-          ? "Accès caméra refusé. Autorise la caméra pour ce site (icône cadenas → Autorisations), puis réessaie."
-          : name === "NotFoundError"
-            ? "Aucune caméra détectée sur l'appareil."
-            : name === "NotReadableError"
-              ? "Caméra déjà utilisée par une autre application. Ferme-la puis réessaie."
-              : "Impossible d'ouvrir la caméra. Réessaie ou saisis l'ISBN à la main.",
-      );
-    }
-  }, [onDetected, stopAll]);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    start();
-    return () => stopAll();
-  }, [start, stopAll]);
+    onDetectedRef.current = onDetected;
+  }, [onDetected]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let controls: IScannerControls | null = null;
+    let done = false;
+
+    (async () => {
+      try {
+        const reader = new BrowserMultiFormatReader(hints());
+        controls = await reader.decodeFromConstraints(
+          { video: { facingMode: { ideal: "environment" } } },
+          videoRef.current ?? undefined,
+          (result) => {
+            if (result && !done) {
+              done = true;
+              controls?.stop();
+              onDetectedRef.current(result.getText());
+            }
+          },
+        );
+        if (cancelled) controls.stop();
+        else setStatus("running");
+      } catch (e) {
+        if (!cancelled) {
+          setStatus("error");
+          setMessage(errorMessage(e));
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      controls?.stop();
+    };
+  }, [attempt]);
+
+  function retry() {
+    setStatus("init");
+    setMessage("Démarrage de la caméra…");
+    setAttempt((a) => a + 1);
+  }
 
   return (
     <div className="relative overflow-hidden rounded-xl bg-black">
@@ -110,7 +103,7 @@ export function BarcodeScanner({ onDetected }: { onDetected: (code: string) => v
           {status === "error" && (
             <button
               type="button"
-              onClick={() => start()}
+              onClick={retry}
               className="rounded-lg bg-white/95 px-5 py-2.5 text-sm font-medium text-black"
             >
               Activer la caméra

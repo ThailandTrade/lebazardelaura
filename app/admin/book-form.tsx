@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { CATEGORIES, CONDITIONS, STATUSES, QUICK_PRICES } from "@/lib/constants";
 import type { IsbnLookupResult } from "@/lib/isbn";
+import { CoverPicker } from "./cover-picker";
 
 type FormState = {
   isbn: string;
@@ -193,6 +194,13 @@ export function BookForm({
           )}
         </div>
       </div>
+      <CoverPicker
+        isbn={s.isbn}
+        title={s.title}
+        author={s.authors.split(",")[0]?.trim() ?? ""}
+        onPick={(url) => set("cover_url", url)}
+      />
+
       <input type="hidden" name="cover_url" value={s.cover_url} />
       <input type="hidden" name="source" value={s.source} />
 

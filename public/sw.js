@@ -1,7 +1,6 @@
 // Service worker minimal pour l'installabilité PWA.
 // IMPORTANT : on n'intercepte PAS les navigations — mettre en cache le HTML d'une
 // app Next rendue côté serveur provoque des incohérences d'hydratation entre builds.
-const CACHE = "bazar-admin-v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

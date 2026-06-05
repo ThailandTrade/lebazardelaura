@@ -73,9 +73,10 @@ Points qui nous ont déjà piégés :
   **17 en quantité > 1** (quantités réelles restaurées depuis l'inventaire ; les très gros
   stocks sans ISBN sont à régler à la main). Vue publique = `status in (disponible,reserve)`
   **et** `quantity > 0`, jamais `notes`.
-- **Dump** prêt pour le VPS : `db/bazar_laura_dump.sql` (sur le laptop, **gitignored**).
-  Le transférer (scp) et restaurer (voir DEPLOYMENT §2, option A) **préserve couvertures +
-  quantités**.
+- **Déploiement = base VIDE** (décision utilisateur, 2026-06-05). On NE transfère PAS la base ;
+  Laura cataloguera depuis l'admin sur le VPS (couvertures rapatriées/optimisées
+  automatiquement). Un dump existe sur le laptop (`db/bazar_laura_dump.sql`, gitignored) mais
+  ne sera pas utilisé. Réimport possible via les scripts si on copie `Inventaire.tsv` (DEPLOYMENT §2, optionnel).
 
 ---
 
@@ -106,6 +107,12 @@ Deux usages : enrichissement auto + sélecteur manuel.
   qui a porté la couverture du catalogue de ~54% à **92%**. **À relancer après import** sur
   le VPS si on reconstruit (option B).
 - Esprit du projet : la **photo réelle** prise par Laura prime sur l'image d'API.
+- **Optimisation stockage/affichage** (`lib/images.ts`, `sharp` = dépendance prod) : à
+  l'enregistrement, toute couverture **externe est rapatriée en local** et convertie en
+  **WebP ~600px (~40 Ko)** ; les **photos uploadées** sont aussi redimensionnées en WebP.
+  → plus de hotlink lent, images servies depuis notre serveur (Caddy, cache `immutable`).
+  Script de masse : `scripts/localize-covers.mjs` (déjà appliqué sur le laptop : 678/678 → ~41 Ko).
+  Fallback : si le rapatriement échoue, on garde l'URL externe.
 
 ---
 
@@ -165,6 +172,7 @@ Le domaine `glorytavern.world` est géré sur **Cloudflare** (compte de l'utilis
 - `import-inventory.mjs` — purge + import depuis `Inventaire.tsv` (gère quantité). `--dry`, `--reset`.
 - `backfill-covers.mjs` — complète les couvertures manquantes (epagine→Google→BnF→OL).
   Options `--concurrency` / `--delay`.
+- `localize-covers.mjs` — rapatrie en masse les couvertures externes en WebP local optimisé.
 - `update-quantities.mjs` — restaure les quantités par ISBN (non destructif).
 - `seed-demo.mjs` — jeu de démo (obsolète, remplacé par l'inventaire réel).
 - `gen-icons.mjs` — régénère les icônes PWA (sharp).

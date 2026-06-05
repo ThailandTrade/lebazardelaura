@@ -53,32 +53,21 @@ sudo -u postgres createdb -O postgres bazar_laura
 sudo -u postgres psql -d postgres -c "grant connect on database bazar_laura to bazar_app;"
 ```
 
-Puis **les données**. Deux options :
-
-### Option A — restaurer le dump du laptop (recommandé : préserve couvertures + quantités)
-Sur le **laptop**, le dump est déjà généré : `db/bazar_laura_dump.sql` (gitignored).
-Transfère-le puis restaure :
-```bash
-# (depuis le laptop)  scp db/bazar_laura_dump.sql user@VPS:/tmp/
-sudo -u postgres psql -d bazar_laura -f /tmp/bazar_laura_dump.sql
-sudo -u postgres psql -d bazar_laura -f /opt/bazar/db/02_grants.sql   # (ré)applique les droits à bazar_app
-```
-
-### Option B — reconstruire depuis zéro (si pas de dump)
+Puis **le schéma** (décision : on démarre sur une **base vide**, Laura cataloguera depuis
+l'admin — les couvertures sont rapatriées/optimisées automatiquement à l'enregistrement) :
 ```bash
 sudo -u postgres psql -d bazar_laura -f /opt/bazar/db/01_schema.sql   # inclut déjà 'quantity'
 sudo -u postgres psql -d bazar_laura -f /opt/bazar/db/02_grants.sql
-# copier Inventaire.tsv dans /opt/bazar/ puis (en tant que bazar, avec .env.local prêt) :
-sudo -u bazar bash -c 'cd /opt/bazar && node --env-file=.env.local scripts/import-inventory.mjs'
-sudo -u bazar bash -c 'cd /opt/bazar && node --env-file=.env.local scripts/backfill-covers.mjs'
-sudo -u bazar bash -c 'cd /opt/bazar && node --env-file=.env.local scripts/update-quantities.mjs'
 ```
 
-Vérifie :
-```bash
-sudo -u postgres psql -d bazar_laura -c "select count(*), count(cover_url) from books;"
-# attendu ~ 734 livres, ~678 avec couverture
-```
+> **Optionnel** — réimporter l'inventaire de départ (si tu copies `Inventaire.tsv` dans
+> `/opt/bazar/`, après avoir préparé `.env.local`) :
+> ```bash
+> sudo -u bazar bash -c 'cd /opt/bazar && node --env-file=.env.local scripts/import-inventory.mjs'
+> sudo -u bazar bash -c 'cd /opt/bazar && node --env-file=.env.local scripts/backfill-covers.mjs'
+> sudo -u bazar bash -c 'cd /opt/bazar && node --env-file=.env.local scripts/update-quantities.mjs'
+> sudo -u bazar bash -c 'cd /opt/bazar && node --env-file=.env.local scripts/localize-covers.mjs'  # WebP local
+> ```
 
 ---
 

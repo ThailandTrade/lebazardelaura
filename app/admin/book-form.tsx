@@ -5,6 +5,15 @@ import { CATEGORIES, CONDITIONS, STATUSES, QUICK_PRICES } from "@/lib/constants"
 import type { IsbnLookupResult } from "@/lib/isbn";
 import { CoverPicker } from "./cover-picker";
 
+// Un exemplaire (ou groupe d'exemplaires identiques) : son état, son prix, sa
+// disponibilité et le nombre d'exemplaires dans cet état.
+type Variant = {
+  condition: string;
+  price: string;
+  status: string;
+  quantity: string;
+};
+
 type FormState = {
   isbn: string;
   title: string;
@@ -17,12 +26,9 @@ type FormState = {
   page_count: string;
   cover_url: string;
   category: string;
-  condition: string;
-  status: string;
-  price: string;
-  quantity: string;
   notes: string;
   source: string;
+  variants: Variant[];
 };
 
 export type BookFormInitial = Partial<{
@@ -58,12 +64,16 @@ function toState(init: BookFormInitial): FormState {
     page_count: init.page_count != null ? String(init.page_count) : "",
     cover_url: init.cover_url ?? "",
     category: init.category ?? "autre",
-    condition: init.condition ?? "bon",
-    status: init.status ?? "disponible",
-    price: init.price != null ? String(init.price) : "",
-    quantity: init.quantity != null ? String(init.quantity) : "1",
     notes: init.notes ?? "",
     source: init.source ?? "manuel",
+    variants: [
+      {
+        condition: init.condition ?? "bon",
+        price: init.price != null ? String(init.price) : "",
+        status: init.status ?? "disponible",
+        quantity: init.quantity != null ? String(init.quantity) : "1",
+      },
+    ],
   };
 }
 
@@ -84,6 +94,24 @@ export function BookForm({
   const [uploading, setUploading] = useState(false);
 
   const set = (k: keyof FormState, v: string) => setS((prev) => ({ ...prev, [k]: v }));
+
+  const setVariant = (i: number, k: keyof Variant, v: string) =>
+    setS((prev) => ({
+      ...prev,
+      variants: prev.variants.map((x, j) => (j === i ? { ...x, [k]: v } : x)),
+    }));
+
+  const addVariant = () =>
+    setS((prev) => {
+      const last = prev.variants[prev.variants.length - 1];
+      // Nouvel exemplaire pré-rempli depuis le précédent (on n'ajuste que ce qui diffère).
+      return { ...prev, variants: [...prev.variants, { ...last, quantity: "1" }] };
+    });
+
+  const removeVariant = (i: number) =>
+    setS((prev) =>
+      prev.variants.length <= 1 ? prev : { ...prev, variants: prev.variants.filter((_, j) => j !== i) },
+    );
 
   function lookup() {
     const isbn = s.isbn.trim();
@@ -232,59 +260,96 @@ export function BookForm({
         </Field>
       </div>
 
-      {/* Prix */}
-      <Field label="Prix (฿) *">
-        <input
-          name="price"
-          required
-          inputMode="decimal"
-          value={s.price}
-          onChange={(e) => set("price", e.target.value)}
-          className={input}
-        />
-        <div className="mt-2 flex flex-wrap gap-2">
-          {QUICK_PRICES.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => set("price", String(p))}
-              className={`rounded-full border px-4 py-1 text-sm transition ${
-                s.price === String(p) ? "border-accent bg-accent text-white" : "border-line hover:border-accent"
-              }`}
-            >
-              {p}฿
-            </button>
+      <Field label="Catégorie">
+        <select name="category" value={s.category} onChange={(e) => set("category", e.target.value)} className={input}>
+          {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+        </select>
+      </Field>
+
+      {/* Exemplaires : un état / prix / disponibilité / quantité par ligne.
+          Même état → garde une seule ligne avec la bonne quantité. */}
+      <div className="rounded-lg border border-line bg-surface-2/40 p-4">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-sm font-medium text-neutral-700">
+            Exemplaires{s.variants.length > 1 ? ` (${s.variants.length} états)` : ""}
+          </span>
+          <button
+            type="button"
+            onClick={addVariant}
+            className="rounded-full border border-line px-3 py-1 text-sm transition hover:border-accent"
+          >
+            + Ajouter un état
+          </button>
+        </div>
+        <p className="mb-3 text-xs text-muted">
+          Plusieurs exemplaires dans le même état ? Une seule ligne, ajuste la quantité. Un état différent
+          (et/ou un autre prix) ? Ajoute une ligne.
+        </p>
+
+        <div className="flex flex-col gap-4">
+          {s.variants.map((v, i) => (
+            <div key={i} className="rounded-md border border-line bg-surface p-3">
+              {s.variants.length > 1 && (
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted">Exemplaire {i + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(i)}
+                    className="text-xs text-red-600 underline underline-offset-2"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              )}
+
+              <Field label="Prix (฿) *">
+                <input
+                  inputMode="decimal"
+                  value={v.price}
+                  onChange={(e) => setVariant(i, "price", e.target.value)}
+                  className={input}
+                />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {QUICK_PRICES.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setVariant(i, "price", String(p))}
+                      className={`rounded-full border px-4 py-1 text-sm transition ${
+                        v.price === String(p) ? "border-accent bg-accent text-white" : "border-line hover:border-accent"
+                      }`}
+                    >
+                      {p}฿
+                    </button>
+                  ))}
+                </div>
+              </Field>
+
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <Field label="État">
+                  <select value={v.condition} onChange={(e) => setVariant(i, "condition", e.target.value)} className={input}>
+                    {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Disponibilité">
+                  <select value={v.status} onChange={(e) => setVariant(i, "status", e.target.value)} className={input}>
+                    {STATUSES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Quantité">
+                  <input
+                    inputMode="numeric"
+                    value={v.quantity}
+                    onChange={(e) => setVariant(i, "quantity", e.target.value)}
+                    className={input}
+                  />
+                </Field>
+              </div>
+            </div>
           ))}
         </div>
-      </Field>
-
-      <Field label="Quantité (nombre d'exemplaires)">
-        <input
-          name="quantity"
-          inputMode="numeric"
-          value={s.quantity}
-          onChange={(e) => set("quantity", e.target.value)}
-          className={`${input} max-w-[8rem]`}
-        />
-      </Field>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Field label="Catégorie">
-          <select name="category" value={s.category} onChange={(e) => set("category", e.target.value)} className={input}>
-            {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
-        </Field>
-        <Field label="État">
-          <select name="condition" value={s.condition} onChange={(e) => set("condition", e.target.value)} className={input}>
-            {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
-        </Field>
-        <Field label="Statut">
-          <select name="status" value={s.status} onChange={(e) => set("status", e.target.value)} className={input}>
-            {STATUSES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
-        </Field>
       </div>
+      <input type="hidden" name="variants" value={JSON.stringify(s.variants)} />
 
       <Field label="Description">
         <textarea name="description" rows={4} value={s.description} onChange={(e) => set("description", e.target.value)} className={input} />

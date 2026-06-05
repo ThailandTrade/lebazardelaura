@@ -4,7 +4,6 @@ import { useState } from "react";
 import { formatPrice } from "@/lib/constants";
 import { condLabel, fmt, type Dict, type Locale } from "@/lib/i18n";
 import type { BookVariant } from "@/lib/books";
-import { ContactButtons } from "./contact-buttons";
 import { AddToPileButton } from "@/components/pile";
 
 export function Availability({
@@ -75,8 +74,8 @@ export function Availability({
       )}
 
       <div className="mt-8 flex flex-col gap-3">
+        <p className="text-[15px] leading-relaxed text-muted">{t.pile_cta}</p>
         <AddToPileButton item={pileItem} t={t} />
-        <ContactButtons title={title} priceLabel={formatPrice(v.price)} conditionLabel={condLabel(v.condition, locale)} t={t} />
       </div>
     </div>
   );

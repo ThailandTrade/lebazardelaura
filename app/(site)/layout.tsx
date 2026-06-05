@@ -19,8 +19,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4 sm:px-6">
             <Link href="/" className="flex items-center gap-2.5">
               <Logo size={28} className="text-foreground" />
-              <span className="flex flex-col items-center font-serif text-xl leading-[1.05] tracking-tight">
-                <span>Le bazar de</span>
+              <span className="flex flex-col items-center font-serif text-lg leading-[1.0] tracking-tight">
+                <span>Le bazar</span>
+                <span>de</span>
                 <span>Laura</span>
               </span>
             </Link>
@@ -39,7 +40,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <div className="flex-1">{children}</div>
 
         <footer className="mt-20 border-t border-line bg-surface/60">
-          <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-10 sm:flex-row sm:items-end sm:justify-between sm:px-6">
+          <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
               <div className="flex items-center gap-2">
                 <Logo size={22} className="text-foreground" />

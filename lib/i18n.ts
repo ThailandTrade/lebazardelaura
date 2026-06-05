@@ -68,6 +68,7 @@ const messages = {
     avail_reserved: " · réservé",
 
     contact_q: "Ce livre te tente ?",
+    pile_cta: "Ce livre te tente ? Ajoute-le à ta pile à lire, et contacte-moi après !",
     contact_wa: "M'écrire sur WhatsApp",
     contact_line: "M'écrire sur Line",
     contact_copy: "Copier le message",
@@ -149,6 +150,7 @@ const messages = {
     avail_reserved: " · reserved",
 
     contact_q: "Tempted by this book?",
+    pile_cta: "Tempted by this book? Add it to your reading pile, then get in touch!",
     contact_wa: "Message me on WhatsApp",
     contact_line: "Message me on Line",
     contact_copy: "Copy the message",

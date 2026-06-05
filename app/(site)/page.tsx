@@ -13,29 +13,30 @@ export default async function HomePage() {
         <div className="grid items-center gap-10 sm:grid-cols-[1.1fr_1fr]">
           <div>
             <p className="mb-4 text-sm uppercase tracking-[0.2em] text-muted">
-              Librairie française d&apos;occasion · Bangkok
+              Ma collection de livres français · Bangkok
             </p>
             <h1 className="font-serif text-4xl leading-[1.05] tracking-tight sm:text-5xl">
-              Des livres français,
+              Mes livres français,
               <br />
-              <span className="italic text-accent">chinés</span> avec soin.
+              à <span className="italic text-accent">partager</span>.
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">
-              Une collection qui voyage de marché en marché. Parcourez les rayons en ligne, et si un
-              livre vous fait de l&apos;œil, écrivez-moi — on s&apos;arrange.
+              J&apos;ai accumulé bien trop de livres français ici, à Bangkok. Plutôt que de les laisser
+              prendre la poussière, je préfère les faire circuler. Jette un œil — si un titre te tente,
+              écris-moi et on s&apos;arrange.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/catalogue"
                 className="rounded-full bg-accent px-7 py-3 font-medium text-white transition hover:bg-accent-dark"
               >
-                Voir le catalogue
+                Voir ma bibliothèque
               </Link>
               <Link
                 href="/a-propos"
                 className="decoration-accent/60 underline-offset-4 hover:underline"
               >
-                L&apos;histoire du bazar
+                Deux mots sur moi
               </Link>
             </div>
           </div>
@@ -50,8 +51,8 @@ export default async function HomePage() {
       <section className="mx-auto mt-16 max-w-5xl px-5 sm:px-6">
         <figure className="rounded-2xl border border-line bg-surface-2/70 px-6 py-8 sm:px-10 sm:py-10">
           <blockquote className="font-serif text-xl leading-relaxed sm:text-2xl">
-            « Chaque livre ici a déjà eu une vie. J&apos;aime l&apos;idée de lui en offrir une
-            seconde, entre les mains de quelqu&apos;un d&apos;autre. »
+            « Je n&apos;arrive pas à jeter un livre. Alors plutôt que de les entasser, autant les
+            passer à quelqu&apos;un qui les lira. »
           </blockquote>
           <figcaption className="mt-4 font-serif italic text-muted">— Laura</figcaption>
         </figure>
@@ -61,9 +62,9 @@ export default async function HomePage() {
       {latest.length > 0 && (
         <section className="mx-auto mt-16 max-w-5xl px-5 sm:px-6">
           <div className="mb-8 flex items-baseline justify-between">
-            <h2 className="rule-accent font-serif text-2xl">Derniers arrivages</h2>
+            <h2 className="rule-accent font-serif text-2xl">Les derniers arrivés</h2>
             <Link href="/catalogue" className="text-sm text-muted underline-offset-4 hover:underline">
-              Tout voir →
+              Toute ma bibliothèque →
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-5">

@@ -6,20 +6,21 @@ export const metadata = { title: "À propos — Le bazar de Laura" };
 export default function AProposPage() {
   return (
     <main className="mx-auto max-w-3xl px-5 py-12 sm:px-6">
-      <h1 className="rule-accent font-serif text-3xl tracking-tight sm:text-4xl">L&apos;histoire du bazar</h1>
+      <h1 className="rule-accent font-serif text-3xl tracking-tight sm:text-4xl">C&apos;est quoi, ce bazar ?</h1>
 
       <div className="mt-8 space-y-5 text-lg leading-relaxed text-foreground/90">
         <p>
-          Le bazar de Laura est une petite librairie française d&apos;occasion, installée sur les
-          marchés et événements de Bangkok. Chaque livre est chiné, choisi, et raconté à la main.
+          Moi c&apos;est Laura. J&apos;habite à Bangkok et j&apos;ai un vrai faible pour les livres —
+          du coup j&apos;en ai accumulé bien trop. Le bazar, c&apos;est juste ma façon de les faire
+          circuler : je les emmène sur des marchés, des petits événements, et je les rassemble ici.
         </p>
         <p>
-          Ce site n&apos;est pas une boutique en ligne : c&apos;est une vitrine. Quand un livre vous
-          plaît, vous m&apos;écrivez directement — on s&apos;arrange pour se retrouver sur un marché
-          ou organiser la remise. Pas de panier, pas de paiement compliqué : juste une conversation.
+          Ce n&apos;est pas une boutique : pas de panier, pas de paiement en ligne. Si un livre te
+          plaît, tu m&apos;écris et on s&apos;arrange — un marché, un café, une remise en main propre.
+          Juste deux personnes et un livre qui change de mains.
         </p>
         <p>
-          Au plaisir de vous croiser entre deux étagères.
+          À bientôt, peut-être entre deux cartons de livres.
         </p>
         <p className="font-serif text-xl italic text-muted">— Laura</p>
       </div>
@@ -32,7 +33,7 @@ export default function AProposPage() {
         href="/catalogue"
         className="mt-10 inline-block rounded-full bg-accent px-7 py-3 font-medium text-white transition hover:bg-accent-dark"
       >
-        Parcourir le catalogue
+        Voir ma bibliothèque
       </Link>
     </main>
   );

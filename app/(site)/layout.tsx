@@ -15,7 +15,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
           </Link>
           <nav className="flex items-center gap-6 text-[15px]">
             <Link href="/catalogue" className="decoration-accent/60 underline-offset-4 hover:underline">
-              Catalogue
+              Bibliothèque
             </Link>
             <Link href="/a-propos" className="decoration-accent/60 underline-offset-4 hover:underline">
               À propos
@@ -34,10 +34,10 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
               <span className="font-serif text-lg">Le bazar de Laura</span>
             </div>
             <p className="mt-2 max-w-sm text-sm text-muted">
-              Une petite librairie française d&apos;occasion qui voyage de marché en marché à Bangkok.
+              Mes livres français d&apos;occasion, que je trimballe de marché en marché à Bangkok.
             </p>
           </div>
-          <p className="font-serif text-sm italic text-muted">Fait avec soin, un livre à la fois.</p>
+          <p className="font-serif text-sm italic text-muted">Des livres déjà lus, prêts à repartir.</p>
         </div>
       </footer>
     </div>

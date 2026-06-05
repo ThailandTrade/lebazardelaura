@@ -12,7 +12,7 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: { default: "Le bazar de Laura", template: "%s" },
   description:
-    "Livres français d'occasion, chinés avec soin à Bangkok. Parcourez le catalogue et écrivez à Laura.",
+    "Ma collection de livres français d'occasion à Bangkok, que je fais circuler. Un titre te plaît ? Écris-moi, on s'arrange.",
   applicationName: "Le bazar de Laura",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Bazar Admin" },
 };

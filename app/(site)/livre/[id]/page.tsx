@@ -18,7 +18,7 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
   return (
     <main className="mx-auto max-w-4xl px-5 py-10 sm:px-6">
       <Link href="/catalogue" className="text-sm text-muted underline-offset-4 hover:underline">
-        ← Retour au catalogue
+        ← Retour à ma bibliothèque
       </Link>
 
       <div className="mt-6 grid gap-10 sm:grid-cols-[260px_1fr]">
@@ -58,7 +58,7 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
 
       {book.description && (
         <section className="mt-12 max-w-2xl">
-          <h2 className="rule-accent font-serif text-xl">Présentation</h2>
+          <h2 className="rule-accent font-serif text-xl">Quelques mots</h2>
           <p className="mt-4 whitespace-pre-line leading-relaxed text-foreground/90">{book.description}</p>
         </section>
       )}

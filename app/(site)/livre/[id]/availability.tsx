@@ -19,7 +19,7 @@ export function Availability({ variants, title }: { variants: BookVariant[]; tit
         </div>
         <p className="mt-2 text-sm text-muted">
           État : {conditionLabel(v.condition)}
-          {v.quantity > 1 ? " · plusieurs exemplaires disponibles" : ""}
+          {v.quantity > 1 ? " · j'en ai plusieurs" : ""}
         </p>
         <div className="mt-8">
           <ContactButtons title={title} priceLabel={formatPrice(v.price)} conditionLabel={conditionLabel(v.condition)} />
@@ -31,7 +31,7 @@ export function Availability({ variants, title }: { variants: BookVariant[]; tit
   // Plusieurs états : état sur la ligne du haut, prix juste en dessous. Cliquable.
   return (
     <div className="mt-6">
-      <p className="text-sm text-muted">Disponible en {variants.length} états :</p>
+      <p className="text-sm text-muted">Je l&apos;ai en {variants.length} états :</p>
       <div className="mt-3 flex flex-wrap gap-2.5">
         {variants.map((variant, i) => {
           const active = i === sel;

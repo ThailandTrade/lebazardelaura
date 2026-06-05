@@ -4,9 +4,22 @@
 > Lis d'abord **`docs/STATUS.md`** (état du projet, décisions, pièges).
 > Spéc produit : **`CLAUDE.md`** / **`AGENTS.md`**.
 
-Cible : `https://laura.glorytavern.world` servi par **Caddy** (HTTPS auto) →
-app **Next.js standalone** (`server.js` sur `:3000`) → **PostgreSQL local**.
-Un seul process Node, pas de Docker, pas de serverless.
+Cible : app **Next.js standalone** (`server.js` sur `:3000`) servie par **Caddy**
+(HTTPS auto) → **PostgreSQL local**. Un seul process Node, pas de Docker, pas de serverless.
+
+> 🚩 **DOMAINE — à confirmer au moment du déploiement.** Le déploiement se fera sur un
+> **vrai domaine de production** (pas forcément `laura.glorytavern.world`, qui n'était que
+> l'URL de **test** via le tunnel laptop). **Au début du déploiement, DEMANDE à
+> l'utilisateur** :
+> - le **nom de domaine final** exact (ex. `lebazardelaura.com` ou un sous-domaine) ;
+> - **où sont gérés les DNS** (Cloudflare ? OVH ? autre ?) et l'**accès** nécessaire
+>   (pouvoir créer un enregistrement A, ou un **token API Cloudflare** si besoin) ;
+> - si le domaine est **proxifié Cloudflare** (nuage orange) ou non — ça change la façon
+>   d'obtenir le certificat HTTPS (cf. §6) ;
+> - l'**IP publique du VPS**.
+>
+> Ensuite, **remplace partout `laura.glorytavern.world`** par le domaine retenu (Caddyfile,
+> `.env.local` `AUTH_URL`, etc.) et adapte l'étape DNS.
 
 ---
 

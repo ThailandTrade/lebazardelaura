@@ -185,6 +185,12 @@ Lancer avec `node --env-file=.env.local scripts/<x>.mjs`.
 > Décision : on **migre le travail sur le VPS** (Contabo, 12 Go RAM). Le dev se fera là-bas.
 > Workflow dev/prod + RAM + Git : **`DEPLOYMENT.md` §10**. Bureau graphique optionnel
 > (XFCE+xRDP) : **`deploy/GUI.md`**.
+>
+> 🚩 **Domaine** : le déploiement se fera sur un **vrai domaine de production** (pas
+> forcément `laura.glorytavern.world`, qui n'était que l'URL de test via tunnel).
+> **Au moment du déploiement, DEMANDER à l'utilisateur** : le domaine final exact, où sont
+> gérés les DNS + l'accès/token nécessaire, si c'est proxifié Cloudflare, et l'IP du VPS.
+> Puis remplacer partout `laura.glorytavern.world`. (Détails : `DEPLOYMENT.md`, encart en tête.)
 
 1. Suivre **`DEPLOYMENT.md`** de bout en bout (DB vide → schéma → env → build → systemd → Caddy → DNS).
 2. Couper le tunnel laptop, repointer le DNS sur le VPS.

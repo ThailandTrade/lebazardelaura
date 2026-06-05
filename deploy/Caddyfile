@@ -1,6 +1,9 @@
 # Caddy — reverse proxy + HTTPS automatique (Let's Encrypt).
 # Place ce contenu dans /etc/caddy/Caddyfile puis : sudo systemctl reload caddy
 #
+# 🚩 REMPLACE le domaine ci-dessous par le VRAI domaine de production confirmé avec
+#    l'utilisateur (laura.glorytavern.world n'était que l'URL de test). Voir DEPLOYMENT.md.
+#
 # ⚠️ Pour que Caddy obtienne le certificat, l'enregistrement DNS
 #    laura.glorytavern.world doit pointer (A/AAAA) sur l'IP du VPS et être
 #    en « DNS only » côté Cloudflare (nuage gris), PAS proxifié (nuage orange).

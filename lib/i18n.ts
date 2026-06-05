@@ -24,7 +24,7 @@ const messages = {
     nav_library: "Bibliothèque",
     nav_about: "À propos",
     nav_pile: "Ma pile à lire",
-    footer_tagline: "Des livres déjà lus, prêts à repartir.",
+    footer_tagline: "Des livres déjà lus, prêts à repartir !",
 
     home_eyebrow: "Ma collection de livres français · Bangkok",
     home_h1a: "Mes livres français,",
@@ -105,7 +105,7 @@ const messages = {
     nav_library: "Library",
     nav_about: "About",
     nav_pile: "My reading pile",
-    footer_tagline: "Already-read books, ready for a new home.",
+    footer_tagline: "Already-read books, ready for a new home!",
 
     home_eyebrow: "My collection of French books · Bangkok",
     home_h1a: "My French books,",

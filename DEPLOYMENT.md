@@ -169,11 +169,37 @@ sudo -u postgres bash -c 'pg_dump bazar_laura | gzip > /var/backups/bazar_$(date
 
 ---
 
-## 10. Mises à jour
+## 10. Travailler sur le VPS (dev / prod / RAM / Git)
 
-```bash
-cd /opt/bazar && sudo -u bazar ./deploy/deploy.sh
-```
+> Décidé avec l'utilisateur : **on développe désormais sur le VPS** (c'est là que tourne la
+> prod) ; le laptop devient une copie de secours. Bureau graphique optionnel : **`deploy/GUI.md`**.
+
+### Deux modes pour modifier le code
+- **Mode prod (le plus courant)** : éditer → rebuild + restart du service.
+  ```bash
+  cd /opt/bazar && sudo -u bazar ./deploy/deploy.sh   # (git pull) + build + copie statiques + restart
+  ```
+  Pas de `next dev` → empreinte ~300–500 Mo. On teste sur le site live.
+- **Mode dev (itérer avec rechargement à chaud)** : serveur de dev **temporaire**, sur un
+  **autre port** pour ne pas gêner la prod, puis Ctrl+C quand fini.
+  ```bash
+  cd /opt/bazar && PORT=3001 npm run dev    # tester sur :3001 ; arrêter après
+  ```
+
+### RAM (VPS 12 Go = large)
+- **Prod** (`node .next/standalone/server.js`) : **~300–500 Mo**.
+- **`next dev`** : peut monter à **1–3 Go** (Turbopack + HMR + watcher) — **normal**, et
+  **seulement pendant qu'on itère**. Le chiffre élevé vu en dev n'est PAS l'empreinte de prod.
+- **`next build`** : pic ponctuel ~1–2 Go.
+- Pire cas (dev + prod + Postgres + Caddy + XFCE/RDP simultanés) ≈ 4–5 Go → large marge sur 12.
+- Si besoin de plafonner Node : `NODE_OPTIONS=--max-old-space-size=1024` (non nécessaire ici).
+
+### Garder Git synchro (laptop ↔ VPS, même repo GitHub)
+- Avant d'éditer : `git pull`.
+- Après une modif qui marche : `git add -A && git commit -m "..." && git push`.
+- Ne pas modifier des deux côtés sans pousser/tirer entre (sinon divergence/conflits).
+- Le push nécessite un token GitHub (PAT) — voir avec l'utilisateur. Ne PAS committer de secret
+  (`.env.local`, etc. sont déjà gitignorés).
 
 ---
 

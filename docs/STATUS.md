@@ -182,7 +182,11 @@ Lancer avec `node --env-file=.env.local scripts/<x>.mjs`.
 ---
 
 ## 13. Quoi faire maintenant
-1. Suivre **`DEPLOYMENT.md`** de bout en bout (DB → dump → env → build → systemd → Caddy → DNS).
+> Décision : on **migre le travail sur le VPS** (Contabo, 12 Go RAM). Le dev se fera là-bas.
+> Workflow dev/prod + RAM + Git : **`DEPLOYMENT.md` §10**. Bureau graphique optionnel
+> (XFCE+xRDP) : **`deploy/GUI.md`**.
+
+1. Suivre **`DEPLOYMENT.md`** de bout en bout (DB vide → schéma → env → build → systemd → Caddy → DNS).
 2. Couper le tunnel laptop, repointer le DNS sur le VPS.
 3. Tester le scan sur le téléphone de Laura (HTTPS prod).
 4. Post-déploiement : réactiver un **SW PWA** propre, **sécuriser `/admin`**, renseigner les

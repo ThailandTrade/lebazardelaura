@@ -7,7 +7,9 @@ Auto-hébergé : un seul projet **Next.js 16** (App Router, standalone) + **Post
 ## 📚 Documentation (à lire dans cet ordre)
 - **[`docs/STATUS.md`](docs/STATUS.md)** — état du projet, décisions, données, pièges.
   **Point d'entrée pour reprendre le travail (y compris une nouvelle session Claude).**
-- **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — runbook de déploiement VPS (Caddy + systemd + Postgres).
+- **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — runbook de déploiement VPS (Caddy + systemd + Postgres)
+  + section « Travailler sur le VPS » (dev/prod, RAM, Git).
+- **[`deploy/GUI.md`](deploy/GUI.md)** — bureau graphique distant optionnel (XFCE + xRDP).
 - **[`CLAUDE.md`](CLAUDE.md)** / **[`AGENTS.md`](AGENTS.md)** — spécification produit & règles.
 
 ## Démarrage (dev)

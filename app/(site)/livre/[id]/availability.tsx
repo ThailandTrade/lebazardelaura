@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatPrice } from "@/lib/constants";
-import { condLabel, type Dict, type Locale } from "@/lib/i18n";
+import { condLabel, fmt, type Dict, type Locale } from "@/lib/i18n";
 import type { BookVariant } from "@/lib/books";
 import { ContactButtons } from "./contact-buttons";
 import { AddToPileButton } from "@/components/pile";
@@ -48,8 +48,8 @@ export function Availability({
       ) : (
         // Plusieurs états : état sur la ligne du haut, prix juste en dessous. Cliquable.
         <>
-          <p className="text-sm text-muted">{t.avail_states(variants.length)}</p>
-          <div className="mt-3 flex flex-wrap gap-2.5">
+          <p className="text-sm text-muted">{fmt(t.avail_states, { n: variants.length })}</p>
+          <div className="mt-3 flex flex-wrap justify-end gap-2.5">
             {variants.map((variant, i) => {
               const active = i === sel;
               return (

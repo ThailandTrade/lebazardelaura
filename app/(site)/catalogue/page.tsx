@@ -2,7 +2,7 @@ import { listPublicBookGroups } from "@/lib/books";
 import { CATEGORIES } from "@/lib/constants";
 import { BookCard } from "@/components/book-card";
 import { getServerLocale } from "@/lib/i18n-server";
-import { getDict, catLabel } from "@/lib/i18n";
+import { getDict, catLabel, fmt, plural } from "@/lib/i18n";
 
 export const metadata = { title: "Ma bibliothèque — Le bazar de Laura" };
 
@@ -49,7 +49,7 @@ export default async function CataloguePage(props: {
         </div>
       </form>
 
-      <p className="mb-6 text-sm text-muted">{t.cat_count(books.length)}</p>
+      <p className="mb-6 text-sm text-muted">{fmt(t.cat_count, { n: books.length, s: plural(books.length) })}</p>
 
       {books.length === 0 ? (
         <p className="rounded-lg border border-dashed border-line p-8 text-center text-muted">{t.cat_empty}</p>

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { Dict } from "@/lib/i18n";
+import { fmt, plural, type Dict } from "@/lib/i18n";
 
 // « Pile à lire » : une sélection de livres côté visiteur, façon panier mais sans
 // paiement. Stockée dans le navigateur (localStorage), pas de compte.
@@ -138,7 +138,7 @@ export function PilePage({ t }: { t: Dict }) {
   const lineId = process.env.NEXT_PUBLIC_LINE_ID;
 
   const lines = items.map((i) => `• « ${i.title} » (${i.conditionLabel}, ${i.priceLabel})`).join("\n");
-  const message = items.length > 0 ? t.pile_msg(lines) : "";
+  const message = items.length > 0 ? fmt(t.pile_msg, { lines }) : "";
 
   async function copyMessage() {
     try {
@@ -199,7 +199,7 @@ export function PilePage({ t }: { t: Dict }) {
       </ul>
 
       <div className="mt-6 rounded-xl border border-line bg-surface-2/60 p-4 sm:p-5">
-        <p className="mb-3 font-serif text-lg">{t.pile_talk(items.length)}</p>
+        <p className="mb-3 font-serif text-lg">{fmt(t.pile_talk, { n: items.length, s: plural(items.length) })}</p>
         <div className="flex flex-col gap-2.5">
           {whatsapp && (
             <a

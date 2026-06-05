@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { formatPrice } from "@/lib/constants";
-import { condLabel, type Dict, type Locale } from "@/lib/i18n";
+import { condLabel, fmt, type Dict, type Locale } from "@/lib/i18n";
 import type { PublicBookGroup } from "@/lib/books";
 
 export function BookCard({ book, t, locale }: { book: PublicBookGroup; t: Dict; locale: Locale }) {
@@ -35,13 +35,13 @@ export function BookCard({ book, t, locale }: { book: PublicBookGroup; t: Dict; 
         {book.authors.length > 0 && (
           <p className="mt-0.5 line-clamp-1 text-sm text-muted">{book.authors.join(", ")}</p>
         )}
-        <p className="mt-1.5 flex items-baseline gap-2 text-sm">
+        <p className="mt-1.5 flex items-baseline justify-end gap-2 text-sm">
           {multi ? (
             <>
               <span className="font-semibold">
                 {t.card_from} {formatPrice(book.minPrice)}
               </span>
-              <span className="text-muted">· {t.card_states(book.variants.length)}</span>
+              <span className="text-muted">· {fmt(t.card_states, { n: book.variants.length })}</span>
             </>
           ) : (
             <>

@@ -15,7 +15,9 @@ export default async function AProposPage() {
 
       <div className="mt-8 space-y-5 text-lg leading-relaxed text-foreground/90">
         <p>{t.about_p1}</p>
+        <p>{t.about_p1b}</p>
         <p>{t.about_p2}</p>
+        <p>{t.about_p2b}</p>
         <p>{t.about_p3}</p>
         <p className="font-serif text-xl italic text-muted">Laura</p>
       </div>

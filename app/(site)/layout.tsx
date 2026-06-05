@@ -19,7 +19,10 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4 sm:px-6">
             <Link href="/" className="flex items-center gap-2.5">
               <Logo size={28} className="text-foreground" />
-              <span className="font-serif text-xl tracking-tight">Le bazar de Laura</span>
+              <span className="flex flex-col items-center font-serif text-xl leading-[1.05] tracking-tight">
+                <span>Le bazar de</span>
+                <span>Laura</span>
+              </span>
             </Link>
             <nav className="flex items-center gap-4 text-[15px] sm:gap-6">
               <Link href="/catalogue" className="decoration-accent/60 underline-offset-4 hover:underline">
@@ -33,7 +36,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </div>
         </header>
 
-        <div className="flex-1">{children}</div>
+        <div className="flex-1 text-right">{children}</div>
 
         <footer className="mt-20 border-t border-line bg-surface/60">
           <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-10 sm:flex-row sm:items-end sm:justify-between sm:px-6">
@@ -41,7 +44,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
               <Logo size={22} className="text-foreground" />
               <span className="font-serif text-lg">Le bazar de Laura</span>
             </div>
-            <div className="flex flex-col gap-3 sm:items-end">
+            <div className="flex flex-col items-end gap-3">
               <p className="font-serif text-sm italic text-muted">{t.footer_tagline}</p>
               <LanguageSwitcher locale={locale} />
             </div>

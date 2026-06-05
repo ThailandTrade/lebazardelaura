@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Dict } from "@/lib/i18n";
+import { fmt, type Dict } from "@/lib/i18n";
 
 export function ContactButtons({
   title,
@@ -19,7 +19,7 @@ export function ContactButtons({
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const lineId = process.env.NEXT_PUBLIC_LINE_ID;
   const details = conditionLabel ? `${conditionLabel}, ${priceLabel}` : priceLabel;
-  const message = t.contact_msg(title, details);
+  const message = fmt(t.contact_msg, { title, details });
 
   async function copyMessage() {
     try {

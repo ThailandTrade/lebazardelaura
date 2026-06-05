@@ -45,7 +45,7 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
           {book.subtitle && <p className="mt-2 font-serif text-lg italic text-muted">{book.subtitle}</p>}
           {book.authors.length > 0 && <p className="mt-3 text-[15px]">{book.authors.join(", ")}</p>}
 
-          <Availability variants={book.variants} title={book.title} />
+          <Availability variants={book.variants} title={book.title} cover_url={book.cover_url} />
 
           <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
             {book.publisher && <Meta label="Éditeur" value={book.publisher} />}

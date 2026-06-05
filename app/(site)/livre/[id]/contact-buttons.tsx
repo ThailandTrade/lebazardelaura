@@ -28,13 +28,8 @@ export function ContactButtons({
     }
   }
 
-  if (!whatsapp && !lineId) {
-    return (
-      <div className="rounded-lg border border-dashed border-line bg-surface-2/50 p-4 text-sm text-muted">
-        Ça t&apos;intéresse ? Je mettrai bientôt un moyen de me joindre juste ici.
-      </div>
-    );
-  }
+  // Pas de contact configuré : on n'affiche rien ici (le bouton « pile à lire » prend le relais).
+  if (!whatsapp && !lineId) return null;
 
   return (
     <div className="rounded-xl border border-line bg-surface-2/60 p-4 sm:p-5">

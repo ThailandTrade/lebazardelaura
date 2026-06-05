@@ -61,7 +61,13 @@ function initialFromLookup(isbn: string | undefined, lookup: ApiResult["lookup"]
   };
 }
 
-export function AddBookFlow({ createAction }: { createAction: (formData: FormData) => void }) {
+export function AddBookFlow({
+  createAction,
+  sellAction,
+}: {
+  createAction: (formData: FormData) => void;
+  sellAction: (formData: FormData) => void;
+}) {
   const [mode, setMode] = useState<Mode>("scan");
   const [initial, setInitial] = useState<BookFormInitial>({});
   const [dups, setDups] = useState<StockLine[]>([]);
@@ -165,7 +171,7 @@ export function AddBookFlow({ createAction }: { createAction: (formData: FormDat
           {note && (
             <p className="mb-4 rounded-lg border border-line bg-surface-2/60 px-3 py-2 text-sm text-muted">{note}</p>
           )}
-          <BookForm action={createAction} initial={initial} submitLabel="Ajouter au stock" />
+          <BookForm action={createAction} sellAction={sellAction} initial={initial} submitLabel="Ajouter au stock" />
         </div>
       )}
     </div>

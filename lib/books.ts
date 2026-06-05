@@ -27,12 +27,17 @@ export type Book = {
   quantity: number;
   notes: string | null;
   source: string | null;
+  entry_date: string | null; // date d'entrée en stock
+  exit_date: string | null;  // date de sortie (vente) ; null tant qu'en stock
   created_at: string;
   updated_at: string;
 };
 
-// Vue publique : jamais les notes internes, jamais les livres vendus/masqués.
-export type PublicBook = Omit<Book, "notes" | "status"> & { status: "disponible" | "reserve" };
+// Vue publique : jamais les notes internes ni les dates d'entrée/sortie, jamais les
+// livres vendus/masqués.
+export type PublicBook = Omit<Book, "notes" | "status" | "entry_date" | "exit_date"> & {
+  status: "disponible" | "reserve";
+};
 
 // Un « exemplaire » disponible d'un titre = une ligne books (un état, un prix, une quantité).
 export type BookVariant = {
@@ -58,6 +63,8 @@ export type StockLine = {
   price: string;
   quantity: number;
   status: BookStatus;
+  entry_date: string | null;
+  exit_date: string | null;
 };
 
 // Un état d'un titre, côté admin (tableau de bord + fiche regroupée).
@@ -67,6 +74,8 @@ export type AdminVariant = {
   price: string;
   quantity: number;
   status: BookStatus;
+  entry_date: string | null;
+  exit_date: string | null;
 };
 
 // Un titre regroupé pour le tableau de bord admin : une entrée par livre (par ISBN ;
@@ -100,6 +109,7 @@ export type BookInput = {
   quantity: number;
   notes: string | null;
   source: string | null;
+  exit_date?: string | null; // optionnel : forcé à now() à la vente, sinon déduit du statut
 };
 
 const PUBLIC_COLUMNS = `id, isbn, title, subtitle, authors, publisher, published_date,
@@ -266,7 +276,15 @@ export async function listAdminBookGroups(
       groups.set(key, g);
       order.push(key);
     }
-    g.variants.push({ id: r.id, condition: r.condition, price: r.price, quantity: r.quantity, status: r.status });
+    g.variants.push({
+      id: r.id,
+      condition: r.condition,
+      price: r.price,
+      quantity: r.quantity,
+      status: r.status,
+      entry_date: r.entry_date,
+      exit_date: r.exit_date,
+    });
     g.totalQuantity += r.quantity;
   }
 
@@ -295,7 +313,7 @@ export async function findByIsbn(isbn: string): Promise<Book | null> {
 /** Toutes les lignes de stock d'un ISBN (pour proposer +1 ou un autre état au scan). */
 export async function findAllByIsbn(isbn: string): Promise<StockLine[]> {
   return query<StockLine>(
-    `select id, title, condition, price, quantity, status from books
+    `select id, title, condition, price, quantity, status, entry_date, exit_date from books
        where isbn = $1 order by created_at desc`,
     [isbn],
   );
@@ -305,14 +323,17 @@ export async function createBook(input: BookInput): Promise<string> {
   const rows = await query<{ id: string }>(
     `insert into books
        (isbn, title, subtitle, authors, publisher, published_date, description,
-        cover_url, language, page_count, category, condition, price, status, notes, source, quantity)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+        cover_url, language, page_count, category, condition, price, status, notes, source, quantity,
+        exit_date)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
+        coalesce($18::timestamptz, case when $14 = 'vendu' then now() else null end))
      returning id`,
     [
       input.isbn, input.title, input.subtitle, input.authors, input.publisher,
       input.published_date, input.description, input.cover_url, input.language,
       input.page_count, input.category, input.condition, input.price, input.status,
       input.notes, input.source, input.quantity,
+      input.exit_date ?? null,
     ],
   );
   return rows[0].id;
@@ -323,7 +344,8 @@ export async function updateBook(id: string, input: BookInput): Promise<void> {
     `update books set
        isbn=$2, title=$3, subtitle=$4, authors=$5, publisher=$6, published_date=$7,
        description=$8, cover_url=$9, language=$10, page_count=$11, category=$12,
-       condition=$13, price=$14, status=$15, notes=$16, source=$17, quantity=$18
+       condition=$13, price=$14, status=$15, notes=$16, source=$17, quantity=$18,
+       exit_date = case when $15 = 'vendu' then coalesce(exit_date, now()) else null end
      where id=$1`,
     [
       id, input.isbn, input.title, input.subtitle, input.authors, input.publisher,
@@ -336,7 +358,13 @@ export async function updateBook(id: string, input: BookInput): Promise<void> {
 
 export async function setStatus(id: string, status: BookStatus): Promise<void> {
   if (!STATUS_VALUES.includes(status)) throw new Error("Statut invalide");
-  await query("update books set status = $2 where id = $1", [id, status]);
+  // Passer à « vendu » horodate la sortie ; revenir en stock l'efface.
+  await query(
+    `update books set status = $2,
+       exit_date = case when $2 = 'vendu' then coalesce(exit_date, now()) else null end
+     where id = $1`,
+    [id, status],
+  );
 }
 
 /** Ajuste la quantité (jamais en dessous de 0). */

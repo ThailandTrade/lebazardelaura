@@ -115,6 +115,20 @@ export async function createBookAction(form: FormData): Promise<void> {
   redirect("/admin");
 }
 
+// Bouton « Vendu » au scan : enregistre directement le livre comme vendu
+// (statut vendu → date de sortie horodatée par createBook ; date d'entrée = maintenant).
+export async function sellBookAction(form: FormData): Promise<void> {
+  const base = parseBookBase(form);
+  base.cover_url = await localizeCover(base.cover_url);
+  const variants = parseVariants(form);
+  for (const v of variants) {
+    await createBook({ ...base, condition: v.condition, price: v.price, status: "vendu", quantity: v.quantity });
+  }
+  revalidatePath("/admin");
+  revalidatePath("/catalogue");
+  redirect("/admin");
+}
+
 export async function updateBookAction(id: string, form: FormData): Promise<void> {
   const base = parseBookBase(form);
   base.cover_url = await localizeCover(base.cover_url); // rapatrie + optimise si externe (une fois)

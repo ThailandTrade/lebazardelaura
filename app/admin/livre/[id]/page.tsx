@@ -19,6 +19,8 @@ export default async function EditBookPage(props: { params: Promise<{ id: string
     price: r.price,
     status: r.status,
     quantity: r.quantity,
+    entry_date: r.entry_date,
+    exit_date: r.exit_date,
   }));
 
   const update = updateBookAction.bind(null, id);

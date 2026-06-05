@@ -14,6 +14,8 @@ type Variant = {
   price: string;
   status: string;
   quantity: string;
+  entry_date?: string | null; // affichage seul (lecture)
+  exit_date?: string | null;
 };
 
 type FormState = {
@@ -58,6 +60,8 @@ export type BookFormInitial = Partial<{
     price: string | number;
     status: string;
     quantity: number | string;
+    entry_date?: string | null;
+    exit_date?: string | null;
   }>;
 }>;
 
@@ -84,6 +88,8 @@ function toState(init: BookFormInitial): FormState {
             price: v.price != null ? String(v.price) : "",
             status: v.status ?? "disponible",
             quantity: v.quantity != null ? String(v.quantity) : "1",
+            entry_date: v.entry_date ?? null,
+            exit_date: v.exit_date ?? null,
           }))
         : [
             {
@@ -102,10 +108,13 @@ export function BookForm({
   action,
   initial = {},
   submitLabel = "Enregistrer",
+  sellAction,
 }: {
   action: (formData: FormData) => void;
   initial?: BookFormInitial;
   submitLabel?: string;
+  // Si fourni (flux de scan), affiche un bouton « Vendu » qui enregistre le livre comme vendu.
+  sellAction?: (formData: FormData) => void;
 }) {
   const [s, setS] = useState<FormState>(() => toState(initial));
   const [lookupMsg, setLookupMsg] = useState<string | null>(null);
@@ -364,11 +373,30 @@ export function BookForm({
                   />
                 </Field>
               </div>
+
+              {(v.entry_date || v.exit_date) && (
+                <p className="mt-2 text-xs text-muted">
+                  {v.entry_date ? `Entré le ${frDate(v.entry_date)}` : ""}
+                  {v.exit_date ? `${v.entry_date ? " · " : ""}Vendu le ${frDate(v.exit_date)}` : ""}
+                </p>
+              )}
             </div>
           ))}
         </div>
       </div>
-      <input type="hidden" name="variants" value={JSON.stringify(s.variants)} />
+      <input
+        type="hidden"
+        name="variants"
+        value={JSON.stringify(
+          s.variants.map((v) => ({
+            id: v.id,
+            condition: v.condition,
+            price: v.price,
+            status: v.status,
+            quantity: v.quantity,
+          })),
+        )}
+      />
 
       <Field label="Description">
         <textarea name="description" rows={4} value={s.description} onChange={(e) => set("description", e.target.value)} className={input} />
@@ -377,11 +405,29 @@ export function BookForm({
         <textarea name="notes" rows={2} value={s.notes} onChange={(e) => set("notes", e.target.value)} className={input} />
       </Field>
 
-      <button type="submit" className="rounded-md bg-accent px-5 py-3 text-base font-medium text-white transition hover:bg-accent-dark">
-        {submitLabel}
-      </button>
+      <div className="flex flex-col gap-2">
+        <button type="submit" className="rounded-md bg-accent px-5 py-3 text-base font-medium text-white transition hover:bg-accent-dark">
+          {submitLabel}
+        </button>
+        {sellAction && (
+          <button
+            type="submit"
+            formAction={sellAction}
+            className="rounded-md border-2 border-foreground bg-surface px-5 py-3 text-base font-medium text-foreground transition hover:bg-surface-2"
+          >
+            Vendu (sortie directe)
+          </button>
+        )}
+      </div>
     </form>
   );
+}
+
+function frDate(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

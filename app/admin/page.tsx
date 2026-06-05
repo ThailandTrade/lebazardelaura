@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listAdminBooks, countByStatus } from "@/lib/books";
-import { formatPrice, categoryLabel, STATUSES } from "@/lib/constants";
+import { formatPrice, categoryLabel, conditionLabel, STATUSES } from "@/lib/constants";
 import { StatusControl } from "./status-control";
 import { QuantityControl } from "./quantity-control";
 
@@ -76,7 +76,13 @@ export default async function AdminDashboard(props: {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-serif font-medium">{b.title}</span>
                   <span className="block truncate text-sm text-muted">
-                    {b.authors.join(", ") || "—"} · {categoryLabel(b.category)} · {formatPrice(b.price)}
+                    {b.authors.join(", ") || "—"} · {categoryLabel(b.category)}
+                  </span>
+                  <span className="mt-1 flex items-center gap-2 text-sm">
+                    <span className="rounded-full border border-line bg-surface-2 px-2 py-0.5 text-xs font-medium text-foreground/80">
+                      {conditionLabel(b.condition)}
+                    </span>
+                    <span className="font-semibold">{formatPrice(b.price)}</span>
                   </span>
                 </span>
               </Link>

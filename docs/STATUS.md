@@ -11,7 +11,8 @@ Site vitrine (catalogue public, **sans paiement**) + **appli admin mobile** pour
 Laura catalogue son stock de livres français d'occasion à Bangkok en scannant les ISBN.
 Tout est **auto-hébergé**, un seul projet Next.js + PostgreSQL.
 
-**Prochaine étape = déploiement VPS** (voir `DEPLOYMENT.md`). Le code est sur GitHub :
+**✅ DÉPLOYÉ EN PROD** (2026-06-05) sur **https://lebazardelaura.com** (VPS Contabo,
+IP `62.146.237.130`). Reste le post-déploiement (§9 / §13). Code sur GitHub :
 `https://github.com/ThailandTrade/lebazardelaura` (branche `main`).
 
 ---
@@ -127,11 +128,10 @@ Deux usages : enrichissement auto + sélecteur manuel.
 ---
 
 ## 9. Décisions & TODO (ce qui n'est PAS fait)
-- **Auth admin retirée** (demande utilisateur « on reste simple ») : `/admin` est **ouvert**.
-  `next-auth`/`bcryptjs`/table `admin_users` restent en place pour réactiver facilement.
-  → **En prod, `/admin` est accessible publiquement.** À sécuriser plus tard (réactiver
-  Auth.js — il y avait `proxy.ts` + `auth.ts`, voir l'historique git, commit « Phase 3a ») ou
-  au minimum restreindre par IP/Basic-Auth Caddy. **À décider avec l'utilisateur.**
+- **Auth admin applicative retirée** (« on reste simple ») : pas de login dans l'app.
+  `next-auth`/`bcryptjs`/table `admin_users` restent en place pour réactiver si besoin.
+  → **En prod, `/admin` + `/api/*` sont protégés par Basic-Auth Caddy** (voir §13.1). Le
+  site public reste ouvert. (Réactiver Auth.js reste une option future, commit « Phase 3a ».)
 - **PWA service worker désactivé** : `app/admin/sw-register.tsx` **désinscrit** le SW et purge
   les caches (il servait du HTML/JS périmé → erreurs d'hydratation pendant les tests).
   `public/sw.js` existe encore. → **Réactiver un SW propre pour l'installabilité** en prod
@@ -143,14 +143,26 @@ Deux usages : enrichissement auto + sélecteur manuel.
 
 ---
 
-## 10. Hébergement actuel (à migrer)
-Pendant le dev/test, l'app tourne sur le **laptop** (`npm run dev` sur :3000) et est exposée
-en HTTPS via un **tunnel cloudflared nommé** `laura-bazar`
-(`tunnel id 831f79d5-...`, config `cloudflared/laura.yml`, CNAME `laura.glorytavern.world`
-→ `...cfargotunnel.com`). C'est ce qui permet à Laura de tester le scan sur son téléphone
-(la caméra exige HTTPS).
-→ Au déploiement VPS : **couper ce tunnel** et repointer le DNS sur le VPS (DEPLOYMENT §8).
-Le domaine `glorytavern.world` est géré sur **Cloudflare** (compte de l'utilisateur).
+## 10. Hébergement (PROD ACTIVE sur le VPS)
+**La prod tourne sur le VPS Contabo** (Ubuntu 24.04, 12 Go RAM, IP `62.146.237.130`) :
+- App : Next.js standalone lancé par **systemd** (`/etc/systemd/system/bazar.service`,
+  `User=manu`, `WorkingDirectory=/home/manu/lebazardelaura`, `EnvironmentFile=.env.local`,
+  `node .next/standalone/server.js` sur `127.0.0.1:3000`). Enable au boot, ~46 Mo RAM.
+- Reverse proxy + HTTPS : **Caddy** (`/etc/caddy/Caddyfile`), Let's Encrypt auto pour
+  `lebazardelaura.com` (+ `www` → 301 vers apex). Caddy reverse-proxy tout vers :3000 ;
+  l'app sert elle-même `/uploads` (caddy ne peut pas lire `/home/manu`).
+- DB : **PostgreSQL 16** local (port **5432**), base `bazar_laura`, rôle `bazar_app`.
+- DNS : **Cloudflare**, domaine `lebazardelaura.com`, A apex + www → IP du VPS en
+  **DNS only** (gris). Zone ID `b5d7ee0ece97c8fdedd2d5232234baa5`. Géré via un token API
+  Cloudflare fourni par l'utilisateur (à révoquer après usage — non stocké dans le repo).
+
+> ⚠️ `sudo` sans mot de passe a été activé temporairement (`/etc/sudoers.d/manu`) le temps
+> du déploiement → **à retirer** (`sudo rm /etc/sudoers.d/manu`) une fois le post-déploiement
+> fini.
+
+> Ancien hébergement de TEST (obsolète) : app sur le **laptop** via tunnel cloudflared
+> `laura-bazar` → `laura.glorytavern.world`. À couper/supprimer côté laptop si ce n'est pas
+> déjà fait (il ne sert plus).
 
 ---
 
@@ -192,8 +204,20 @@ Lancer avec `node --env-file=.env.local scripts/<x>.mjs`.
 > gérés les DNS + l'accès/token nécessaire, si c'est proxifié Cloudflare, et l'IP du VPS.
 > Puis remplacer partout `laura.glorytavern.world`. (Détails : `DEPLOYMENT.md`, encart en tête.)
 
-1. Suivre **`DEPLOYMENT.md`** de bout en bout (DB vide → schéma → env → build → systemd → Caddy → DNS).
-2. Couper le tunnel laptop, repointer le DNS sur le VPS.
-3. Tester le scan sur le téléphone de Laura (HTTPS prod).
-4. Post-déploiement : réactiver un **SW PWA** propre, **sécuriser `/admin`**, renseigner les
-   **contacts** WhatsApp/Line, mettre en place les **sauvegardes**.
+**✅ FAIT (2026-06-05)** : déploiement complet sur le VPS (install Node22/PG16/Caddy → DB
+vide → schéma → `.env.local` → build standalone → service systemd → Caddy + DNS Cloudflare
+→ HTTPS live sur `lebazardelaura.com`).
+
+**Reste à faire (post-déploiement)** :
+1. ✅ **`/admin` SÉCURISÉ** (2026-06-05) par **Basic-Auth Caddy** : `@protected path /admin*
+   /api/*` → `basic_auth` (user `laura`, hash bcrypt dans `/etc/caddy/Caddyfile`, **pas
+   committé**). Public reste ouvert. Le mot de passe a été transmis à l'utilisateur ; pour le
+   changer : `caddy hash-password --plaintext 'X'` puis remplacer le hash + `reload caddy`.
+   (Alternative future : réactiver Auth.js, commit « Phase 3a ».)
+2. **Contacts** WhatsApp/Line : renseigner `NEXT_PUBLIC_WHATSAPP_NUMBER` / `NEXT_PUBLIC_LINE_ID`
+   dans `.env.local` puis **rebuild** (`./deploy/deploy.sh`).
+3. **Tester le scan** sur le téléphone de Laura (HTTPS prod OK → caméra autorisée).
+4. **SW PWA** propre (installabilité) — voir §9.
+5. **Sauvegardes** : cron `pg_dump` + uploads (DEPLOYMENT §9).
+6. **Ménage** : retirer le `sudo` NOPASSWD (`sudo rm /etc/sudoers.d/manu`), révoquer le token
+   Cloudflare, couper l'ancien tunnel laptop.

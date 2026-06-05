@@ -1,24 +1,31 @@
-# Caddy — reverse proxy + HTTPS automatique (Let's Encrypt).
+# Le bazar de Laura — Caddy reverse proxy + HTTPS automatique (Let's Encrypt).
 # Place ce contenu dans /etc/caddy/Caddyfile puis : sudo systemctl reload caddy
 #
-# 🚩 REMPLACE le domaine ci-dessous par le VRAI domaine de production confirmé avec
-#    l'utilisateur (laura.glorytavern.world n'était que l'URL de test). Voir DEPLOYMENT.md.
+# Production : lebazardelaura.com (DNS sur Cloudflare, A apex + www -> IP du VPS,
+# en « DNS only » / nuage gris pour que le challenge HTTP de Caddy réussisse).
 #
-# ⚠️ Pour que Caddy obtienne le certificat, l'enregistrement DNS
-#    laura.glorytavern.world doit pointer (A/AAAA) sur l'IP du VPS et être
-#    en « DNS only » côté Cloudflare (nuage gris), PAS proxifié (nuage orange).
-#    Sinon le challenge HTTP échoue. (Alternative : challenge DNS Cloudflare.)
+# NB : l'app Next.js sert elle-même /uploads (route app/uploads/covers/[file]),
+#      donc Caddy n'a pas besoin d'accès disque (le dossier est dans /home/manu,
+#      non traversable par l'utilisateur caddy).
+#
+# 🔒 /admin* et /api/* sont protégés par Basic-Auth (Laura). Le site public reste ouvert.
+#    Générer le hash du mot de passe :  caddy hash-password --plaintext 'MOT_DE_PASSE'
+#    puis remplacer le hash ci-dessous. (Le vrai hash n'est PAS committé.)
 
-laura.glorytavern.world {
+lebazardelaura.com {
 	encode zstd gzip
 
-	# Couvertures uploadées par Laura : servies directement depuis le disque.
-	# /uploads/covers/x.jpg  ->  /opt/bazar/uploads/covers/x.jpg
-	handle_path /uploads/* {
-		root * /opt/bazar/uploads
-		file_server
+	# Accès admin (pages + server actions + API) protégé par mot de passe.
+	@protected path /admin* /api/*
+	basic_auth @protected {
+		laura $2a$14$REMPLACER_PAR_LE_HASH_BCRYPT_GENERE
 	}
 
-	# Tout le reste -> l'app Next.js (serveur standalone sur :3000)
+	# Tout -> l'app Next.js (serveur standalone sur :3000), y compris /uploads.
 	reverse_proxy 127.0.0.1:3000
+}
+
+# Redirige www -> apex
+www.lebazardelaura.com {
+	redir https://lebazardelaura.com{uri} permanent
 }

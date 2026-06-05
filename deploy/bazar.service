@@ -2,6 +2,9 @@
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now bazar
 # Logs : journalctl -u bazar -f
+#
+# NB : déploiement auto-hébergé simple → on tourne depuis le HOME de l'utilisateur
+#      manu (pas de /opt/bazar ni d'utilisateur système dédié).
 
 [Unit]
 Description=Le bazar de Laura (Next.js standalone)
@@ -10,14 +13,14 @@ Wants=postgresql.service
 
 [Service]
 Type=simple
-User=bazar
-WorkingDirectory=/opt/bazar
+User=manu
+WorkingDirectory=/home/manu/lebazardelaura
 # Charge DATABASE_URL, GOOGLE_BOOKS_API_KEY, UPLOAD_DIR, PORT, HOSTNAME, etc.
-EnvironmentFile=/opt/bazar/.env.local
-ExecStart=/usr/bin/node /opt/bazar/.next/standalone/server.js
+EnvironmentFile=/home/manu/lebazardelaura/.env.local
+ExecStart=/usr/bin/node /home/manu/lebazardelaura/.next/standalone/server.js
 Restart=always
 RestartSec=3
-# Durcissement léger
+# Durcissement léger (le HOME reste accessible en écriture pour les uploads)
 NoNewPrivileges=true
 ProtectSystem=full
 

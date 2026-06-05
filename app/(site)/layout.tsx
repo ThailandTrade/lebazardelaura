@@ -36,7 +36,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </div>
         </header>
 
-        <div className="flex-1 text-right">{children}</div>
+        <div className="flex-1">{children}</div>
 
         <footer className="mt-20 border-t border-line bg-surface/60">
           <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-10 sm:flex-row sm:items-end sm:justify-between sm:px-6">

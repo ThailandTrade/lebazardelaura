@@ -49,7 +49,7 @@ export function Availability({
         // Plusieurs états : état sur la ligne du haut, prix juste en dessous. Cliquable.
         <>
           <p className="text-sm text-muted">{fmt(t.avail_states, { n: variants.length })}</p>
-          <div className="mt-3 flex flex-wrap justify-end gap-2.5">
+          <div className="mt-3 flex flex-wrap gap-2.5">
             {variants.map((variant, i) => {
               const active = i === sel;
               return (

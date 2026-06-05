@@ -13,7 +13,7 @@ export default async function AProposPage() {
     <main className="mx-auto max-w-3xl px-5 py-12 sm:px-6">
       <h1 className="rule-accent font-serif text-3xl tracking-tight sm:text-4xl">{t.about_title}</h1>
 
-      <div className="mt-8 space-y-5 text-lg leading-relaxed text-foreground/90">
+      <div className="mt-8 space-y-5 text-justify text-lg leading-relaxed text-foreground/90">
         <p>{t.about_p1}</p>
         <p>{t.about_p1b}</p>
         <p>{t.about_p2}</p>

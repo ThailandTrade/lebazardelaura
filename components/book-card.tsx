@@ -35,7 +35,7 @@ export function BookCard({ book, t, locale }: { book: PublicBookGroup; t: Dict; 
         {book.authors.length > 0 && (
           <p className="mt-0.5 line-clamp-1 text-sm text-muted">{book.authors.join(", ")}</p>
         )}
-        <p className="mt-1.5 flex items-baseline justify-end gap-2 text-sm">
+        <p className="mt-1.5 flex items-baseline gap-2 text-sm">
           {multi ? (
             <>
               <span className="font-semibold">

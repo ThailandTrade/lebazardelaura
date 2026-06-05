@@ -25,7 +25,7 @@ export default async function CataloguePage(props: {
     <main className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
       <header className="mb-8">
         <h1 className="rule-accent font-serif text-3xl tracking-tight sm:text-4xl">{t.cat_title}</h1>
-        <p className="mt-4 max-w-xl text-muted">{t.cat_subtitle}</p>
+        <p className="mt-4 max-w-xl text-justify text-muted">{t.cat_subtitle}</p>
       </header>
 
       <form className="mb-10 rounded-xl border border-line bg-surface-2/60 p-4 sm:p-5">

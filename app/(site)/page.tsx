@@ -22,9 +22,9 @@ export default async function HomePage() {
               <br />
               {t.home_h1b} <span className="italic text-accent">{t.home_h1em}</span>.
             </h1>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">{t.home_hero}</p>
-            <p className="mt-3 max-w-md text-lg leading-relaxed text-muted">{t.home_hero2}</p>
-            <div className="mt-8 flex flex-wrap items-center justify-end gap-4">
+            <p className="mt-6 max-w-md text-justify text-lg leading-relaxed text-muted">{t.home_hero}</p>
+            <p className="mt-3 max-w-md text-justify text-lg leading-relaxed text-muted">{t.home_hero2}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/catalogue"
                 className="rounded-full bg-accent px-7 py-3 font-medium text-white transition hover:bg-accent-dark"
@@ -46,7 +46,7 @@ export default async function HomePage() {
       {/* Mot de Laura */}
       <section className="mx-auto mt-16 max-w-5xl px-5 sm:px-6">
         <figure className="rounded-2xl border border-line bg-surface-2/70 px-6 py-8 sm:px-10 sm:py-10">
-          <blockquote className="font-serif text-xl leading-relaxed sm:text-2xl">{t.home_quote}</blockquote>
+          <blockquote className="text-justify font-serif text-xl leading-relaxed sm:text-2xl">{t.home_quote}</blockquote>
           <figcaption className="mt-4 font-serif italic text-muted">Laura</figcaption>
         </figure>
       </section>

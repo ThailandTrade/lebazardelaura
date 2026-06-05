@@ -62,7 +62,7 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
       {book.description && (
         <section className="mt-12 max-w-2xl">
           <h2 className="rule-accent font-serif text-xl">{t.book_words}</h2>
-          <p className="mt-4 whitespace-pre-line leading-relaxed text-foreground/90">{book.description}</p>
+          <p className="mt-4 whitespace-pre-line text-justify leading-relaxed text-foreground/90">{book.description}</p>
         </section>
       )}
     </main>

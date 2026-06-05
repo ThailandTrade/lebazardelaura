@@ -16,8 +16,7 @@ export default function AProposPage() {
         </p>
         <p>
           Ce n&apos;est pas une boutique : pas de panier, pas de paiement en ligne. Si un livre te
-          plaît, tu m&apos;écris et on s&apos;arrange — un marché, un café, une remise en main propre.
-          Juste deux personnes et un livre qui change de mains.
+          plaît, tu m&apos;écris. Juste deux personnes et un livre qui change de mains.
         </p>
         <p>
           À bientôt, peut-être entre deux cartons de livres.

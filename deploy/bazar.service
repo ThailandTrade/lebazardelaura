@@ -1,0 +1,25 @@
+# systemd — service de l'app. Copier vers /etc/systemd/system/bazar.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now bazar
+# Logs : journalctl -u bazar -f
+
+[Unit]
+Description=Le bazar de Laura (Next.js standalone)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=bazar
+WorkingDirectory=/opt/bazar
+# Charge DATABASE_URL, GOOGLE_BOOKS_API_KEY, UPLOAD_DIR, PORT, HOSTNAME, etc.
+EnvironmentFile=/opt/bazar/.env.local
+ExecStart=/usr/bin/node /opt/bazar/.next/standalone/server.js
+Restart=always
+RestartSec=3
+# Durcissement léger
+NoNewPrivileges=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

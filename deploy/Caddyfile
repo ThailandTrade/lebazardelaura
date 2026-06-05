@@ -1,0 +1,21 @@
+# Caddy — reverse proxy + HTTPS automatique (Let's Encrypt).
+# Place ce contenu dans /etc/caddy/Caddyfile puis : sudo systemctl reload caddy
+#
+# ⚠️ Pour que Caddy obtienne le certificat, l'enregistrement DNS
+#    laura.glorytavern.world doit pointer (A/AAAA) sur l'IP du VPS et être
+#    en « DNS only » côté Cloudflare (nuage gris), PAS proxifié (nuage orange).
+#    Sinon le challenge HTTP échoue. (Alternative : challenge DNS Cloudflare.)
+
+laura.glorytavern.world {
+	encode zstd gzip
+
+	# Couvertures uploadées par Laura : servies directement depuis le disque.
+	# /uploads/covers/x.jpg  ->  /opt/bazar/uploads/covers/x.jpg
+	handle_path /uploads/* {
+		root * /opt/bazar/uploads
+		file_server
+	}
+
+	# Tout le reste -> l'app Next.js (serveur standalone sur :3000)
+	reverse_proxy 127.0.0.1:3000
+}

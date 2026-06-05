@@ -1,0 +1,8 @@
+# Garantit des fins de ligne LF pour les fichiers exécutés/lus sur le VPS Linux,
+# quel que soit l'OS qui committe (évite un deploy.sh en CRLF qui planterait).
+*.sh        text eol=lf
+*.mjs       text eol=lf
+*.sql       text eol=lf
+*.yml       text eol=lf
+deploy/Caddyfile     text eol=lf
+deploy/bazar.service text eol=lf

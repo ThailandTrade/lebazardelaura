@@ -40,17 +40,15 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <div className="flex-1">{children}</div>
 
         <footer className="mt-20 border-t border-line bg-surface/60">
-          <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div>
+          <div className="mx-auto max-w-5xl px-5 py-8 sm:px-6">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <Logo size={22} className="text-foreground" />
                 <span className="font-serif text-lg">Le bazar de Laura</span>
               </div>
-              <p className="mt-2 font-serif text-sm italic text-muted">{t.footer_tagline}</p>
-            </div>
-            <div className="self-end sm:self-auto">
               <LanguageSwitcher locale={locale} />
             </div>
+            <p className="mt-2 font-serif text-sm italic text-muted">{t.footer_tagline}</p>
           </div>
         </footer>
       </div>

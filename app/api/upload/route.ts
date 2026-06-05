@@ -1,18 +1,9 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
-import path from "node:path";
+import { storeUploadedImage } from "@/lib/images";
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? "./uploads/covers";
-const PUBLIC_BASE = process.env.NEXT_PUBLIC_UPLOAD_BASE_URL ?? "/uploads/covers";
-const MAX_BYTES = 8 * 1024 * 1024; // 8 Mo
+const MAX_BYTES = 12 * 1024 * 1024; // 12 Mo (photo brute de téléphone avant compression)
 
-const EXT_BY_TYPE: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
-// Réception de la photo de couverture prise par Laura → écrit sur disque, renvoie l'URL publique.
+// Réception de la photo de couverture prise par Laura → redimensionnée en WebP,
+// écrite sur disque, renvoie l'URL publique locale.
 export async function POST(request: Request): Promise<Response> {
   const form = await request.formData();
   const file = form.get("file");
@@ -20,19 +11,18 @@ export async function POST(request: Request): Promise<Response> {
   if (!(file instanceof File)) {
     return Response.json({ error: "Aucun fichier" }, { status: 400 });
   }
-  const ext = EXT_BY_TYPE[file.type];
-  if (!ext) {
-    return Response.json({ error: "Format non supporté (jpg, png, webp)" }, { status: 400 });
+  if (!file.type.startsWith("image/")) {
+    return Response.json({ error: "Le fichier n'est pas une image" }, { status: 400 });
   }
   if (file.size > MAX_BYTES) {
-    return Response.json({ error: "Fichier trop volumineux (max 8 Mo)" }, { status: 413 });
+    return Response.json({ error: "Fichier trop volumineux (max 12 Mo)" }, { status: 413 });
   }
 
-  const filename = `${randomUUID()}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  await writeFile(path.join(UPLOAD_DIR, filename), buffer);
-
-  return Response.json({ url: `${PUBLIC_BASE}/${filename}` });
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const url = await storeUploadedImage(buffer);
+    return Response.json({ url });
+  } catch {
+    return Response.json({ error: "Image illisible" }, { status: 400 });
+  }
 }

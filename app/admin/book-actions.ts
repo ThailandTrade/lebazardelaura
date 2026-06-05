@@ -14,6 +14,7 @@ import {
   type BookInput,
 } from "@/lib/books";
 import { normalizeIsbn } from "@/lib/isbn";
+import { localizeCover } from "@/lib/images";
 import type { BookStatus } from "@/lib/constants";
 
 function str(form: FormData, key: string): string | null {
@@ -68,6 +69,7 @@ function parseBookInput(form: FormData): BookInput {
 
 export async function createBookAction(form: FormData): Promise<void> {
   const input = parseBookInput(form);
+  input.cover_url = await localizeCover(input.cover_url); // rapatrie + optimise la couverture
   await createBook(input);
   revalidatePath("/admin");
   revalidatePath("/catalogue");
@@ -76,6 +78,7 @@ export async function createBookAction(form: FormData): Promise<void> {
 
 export async function updateBookAction(id: string, form: FormData): Promise<void> {
   const input = parseBookInput(form);
+  input.cover_url = await localizeCover(input.cover_url); // rapatrie + optimise si externe
   await updateBook(id, input);
   revalidatePath("/admin");
   revalidatePath("/catalogue");

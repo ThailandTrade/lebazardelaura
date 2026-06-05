@@ -6,8 +6,10 @@ import type { IsbnLookupResult } from "@/lib/isbn";
 import { CoverPicker } from "./cover-picker";
 
 // Un exemplaire (ou groupe d'exemplaires identiques) : son état, son prix, sa
-// disponibilité et le nombre d'exemplaires dans cet état.
+// disponibilité et le nombre d'exemplaires dans cet état. `id` = ligne books
+// existante (édition) ; absent = nouvel état à créer.
 type Variant = {
+  id?: string;
   condition: string;
   price: string;
   status: string;
@@ -49,6 +51,14 @@ export type BookFormInitial = Partial<{
   quantity: number | string;
   notes: string | null;
   source: string | null;
+  // Édition d'un titre regroupé : tous ses états existants (avec leur id).
+  variants: Array<{
+    id?: string;
+    condition: string;
+    price: string | number;
+    status: string;
+    quantity: number | string;
+  }>;
 }>;
 
 function toState(init: BookFormInitial): FormState {
@@ -66,14 +76,23 @@ function toState(init: BookFormInitial): FormState {
     category: init.category ?? "autre",
     notes: init.notes ?? "",
     source: init.source ?? "manuel",
-    variants: [
-      {
-        condition: init.condition ?? "bon",
-        price: init.price != null ? String(init.price) : "",
-        status: init.status ?? "disponible",
-        quantity: init.quantity != null ? String(init.quantity) : "1",
-      },
-    ],
+    variants:
+      init.variants && init.variants.length > 0
+        ? init.variants.map((v) => ({
+            id: v.id,
+            condition: v.condition ?? "bon",
+            price: v.price != null ? String(v.price) : "",
+            status: v.status ?? "disponible",
+            quantity: v.quantity != null ? String(v.quantity) : "1",
+          }))
+        : [
+            {
+              condition: init.condition ?? "bon",
+              price: init.price != null ? String(init.price) : "",
+              status: init.status ?? "disponible",
+              quantity: init.quantity != null ? String(init.quantity) : "1",
+            },
+          ],
   };
 }
 
@@ -104,8 +123,8 @@ export function BookForm({
   const addVariant = () =>
     setS((prev) => {
       const last = prev.variants[prev.variants.length - 1];
-      // Nouvel exemplaire pré-rempli depuis le précédent (on n'ajuste que ce qui diffère).
-      return { ...prev, variants: [...prev.variants, { ...last, quantity: "1" }] };
+      // Nouvel exemplaire (sans id = nouvelle ligne) pré-rempli depuis le précédent.
+      return { ...prev, variants: [...prev.variants, { ...last, id: undefined, quantity: "1" }] };
     });
 
   const removeVariant = (i: number) =>

@@ -60,6 +60,28 @@ export type StockLine = {
   status: BookStatus;
 };
 
+// Un état d'un titre, côté admin (tableau de bord + fiche regroupée).
+export type AdminVariant = {
+  id: string;
+  condition: BookCondition;
+  price: string;
+  quantity: number;
+  status: BookStatus;
+};
+
+// Un titre regroupé pour le tableau de bord admin : une entrée par livre (par ISBN ;
+// les livres sans ISBN restent distincts), avec la liste de ses états.
+export type AdminBookGroup = {
+  id: string; // ligne représentante (lien vers la fiche d'édition)
+  title: string;
+  authors: string[];
+  category: BookCategory;
+  cover_url: string | null;
+  isbn: string | null;
+  variants: AdminVariant[];
+  totalQuantity: number;
+};
+
 export type BookInput = {
   isbn: string | null;
   title: string;
@@ -135,9 +157,12 @@ function toVariant(b: PublicBook): BookVariant {
   return { id: b.id, condition: b.condition, price: b.price, quantity: b.quantity, status: b.status };
 }
 
-// Tri des exemplaires pour l'affichage public : meilleur état d'abord
-// (l'ordre de CONDITION_VALUES va du meilleur au moins bon), prix croissant en départage.
-function byBestCondition(a: BookVariant, b: BookVariant): number {
+// Tri des exemplaires : meilleur état d'abord (l'ordre de CONDITION_VALUES va du
+// meilleur au moins bon), prix croissant en départage.
+function byBestCondition(
+  a: { condition: BookCondition; price: string },
+  b: { condition: BookCondition; price: string },
+): number {
   const r = CONDITION_VALUES.indexOf(a.condition) - CONDITION_VALUES.indexOf(b.condition);
   return r !== 0 ? r : Number(a.price) - Number(b.price);
 }
@@ -212,6 +237,43 @@ export async function listAdminBooks(opts: { q?: string; status?: string } = {})
   );
 }
 
+/**
+ * Tableau de bord regroupé : une entrée par titre (par ISBN ; sans ISBN = distinct),
+ * avec ses états triés du meilleur au moins bon. La ligne représentante (la plus
+ * récente) porte les métadonnées et l'id de la fiche d'édition.
+ */
+export async function listAdminBookGroups(
+  opts: { q?: string; status?: string } = {},
+): Promise<AdminBookGroup[]> {
+  const rows = await listAdminBooks(opts); // triées created_at desc
+  const groups = new Map<string, AdminBookGroup>();
+  const order: string[] = [];
+
+  for (const r of rows) {
+    const key = r.isbn ? `isbn:${r.isbn}` : `id:${r.id}`;
+    let g = groups.get(key);
+    if (!g) {
+      g = {
+        id: r.id,
+        title: r.title,
+        authors: r.authors,
+        category: r.category,
+        cover_url: r.cover_url,
+        isbn: r.isbn,
+        variants: [],
+        totalQuantity: 0,
+      };
+      groups.set(key, g);
+      order.push(key);
+    }
+    g.variants.push({ id: r.id, condition: r.condition, price: r.price, quantity: r.quantity, status: r.status });
+    g.totalQuantity += r.quantity;
+  }
+
+  for (const g of groups.values()) g.variants.sort(byBestCondition);
+  return order.map((k) => groups.get(k)!);
+}
+
 /** Comptes par statut (pour les filtres du tableau de bord). */
 export async function countByStatus(): Promise<Record<string, number>> {
   const rows = await query<{ status: string; n: string }>(
@@ -284,6 +346,11 @@ export async function adjustQuantity(id: string, delta: number): Promise<void> {
 
 export async function deleteBook(id: string): Promise<void> {
   await query("delete from books where id = $1", [id]);
+}
+
+/** Supprime tous les états d'un même ISBN (suppression d'un titre entier). */
+export async function deleteByIsbn(isbn: string): Promise<void> {
+  await query("delete from books where isbn = $1", [isbn]);
 }
 
 /** Garde-fous de validation partagés (formulaire admin). */

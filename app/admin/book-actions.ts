@@ -8,6 +8,9 @@ import {
   setStatus,
   adjustQuantity,
   deleteBook,
+  deleteByIsbn,
+  getBook,
+  findAllByIsbn,
   isValidCategory,
   isValidCondition,
   isValidStatus,
@@ -58,10 +61,11 @@ function parseBookBase(form: FormData): BookBase {
   };
 }
 
-type VariantInput = { condition: BookCondition; price: number; status: BookStatus; quantity: number };
+type VariantInput = { id?: string; condition: BookCondition; price: number; status: BookStatus; quantity: number };
 
-// Lit la liste d'exemplaires (champ caché JSON `variants`) ; fusionne les lignes
-// identiques (même état + prix + dispo) en cumulant les quantités.
+// Lit la liste d'états (champ caché JSON `variants`). Chaque entrée garde son `id`
+// (état existant) ou n'en a pas (nouvel état). Pas de fusion : c'est l'utilisateur
+// qui gère la quantité par état.
 function parseVariants(form: FormData): VariantInput[] {
   const raw = form.get("variants");
   let arr: unknown[] = [];
@@ -86,7 +90,9 @@ function parseVariants(form: FormData): VariantInput[] {
     const quantity = Number.isFinite(qtyRaw) && qtyRaw >= 0 ? Math.floor(qtyRaw) : 1;
     const condition = String(o.condition ?? "");
     const status = String(o.status ?? "");
+    const id = typeof o.id === "string" && o.id ? o.id : undefined;
     return {
+      id,
       condition: isValidCondition(condition) ? condition : "bon",
       price,
       status: isValidStatus(status) ? status : "disponible",
@@ -94,16 +100,7 @@ function parseVariants(form: FormData): VariantInput[] {
     } as VariantInput;
   });
 
-  // Fusionne les exemplaires identiques (même état + prix + dispo).
-  const merged = new Map<string, VariantInput>();
-  for (const v of parsed) {
-    const key = `${v.condition}|${v.price}|${v.status}`;
-    const ex = merged.get(key);
-    if (ex) ex.quantity += v.quantity;
-    else merged.set(key, { ...v });
-  }
-  const out = [...merged.values()];
-  return out.length > 0 ? out : [{ condition: "bon", price: 0, status: "disponible", quantity: 1 }];
+  return parsed.length > 0 ? parsed : [{ condition: "bon", price: 0, status: "disponible", quantity: 1 }];
 }
 
 export async function createBookAction(form: FormData): Promise<void> {
@@ -122,12 +119,28 @@ export async function updateBookAction(id: string, form: FormData): Promise<void
   const base = parseBookBase(form);
   base.cover_url = await localizeCover(base.cover_url); // rapatrie + optimise si externe (une fois)
   const variants = parseVariants(form);
-  // 1er exemplaire → met à jour la fiche ouverte ; états ajoutés → nouvelles lignes sœurs.
-  const [first, ...rest] = variants;
-  await updateBook(id, { ...base, condition: first.condition, price: first.price, status: first.status, quantity: first.quantity });
-  for (const v of rest) {
-    await createBook({ ...base, condition: v.condition, price: v.price, status: v.status, quantity: v.quantity });
+
+  // Réconciliation à l'échelle du titre : on édite tous les états d'un même livre.
+  const opened = await getBook(id);
+  const siblingIds = new Set<string>(
+    opened?.isbn ? (await findAllByIsbn(opened.isbn)).map((r) => r.id) : [id],
+  );
+
+  const submittedIds = new Set<string>();
+  for (const v of variants) {
+    const payload = { ...base, condition: v.condition, price: v.price, status: v.status, quantity: v.quantity };
+    if (v.id && siblingIds.has(v.id)) {
+      submittedIds.add(v.id);
+      await updateBook(v.id, payload); // état existant
+    } else {
+      await createBook(payload); // nouvel état
+    }
   }
+  // États retirés du formulaire → supprimés.
+  for (const sid of siblingIds) {
+    if (!submittedIds.has(sid)) await deleteBook(sid);
+  }
+
   revalidatePath("/admin");
   revalidatePath("/catalogue");
   revalidatePath(`/livre/${id}`);
@@ -147,7 +160,10 @@ export async function adjustQuantityAction(id: string, delta: number): Promise<v
 }
 
 export async function deleteBookAction(id: string): Promise<void> {
-  await deleteBook(id);
+  // Supprime le titre entier (tous ses états du même ISBN), sinon juste la ligne.
+  const book = await getBook(id);
+  if (book?.isbn) await deleteByIsbn(book.isbn);
+  else await deleteBook(id);
   revalidatePath("/admin");
   revalidatePath("/catalogue");
   redirect("/admin");

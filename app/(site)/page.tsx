@@ -22,7 +22,7 @@ export default async function HomePage() {
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">
               J&apos;ai accumulé bien trop de livres français ici, à Bangkok. Plutôt que de les laisser
-              prendre la poussière, je préfère les faire circuler. Jette un œil — si un titre te tente,
+              prendre la poussière, je préfère les faire circuler. Jette un œil. Si un titre te tente,
               écris-moi !
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -54,7 +54,7 @@ export default async function HomePage() {
             « Je n&apos;arrive pas à jeter un livre. Alors plutôt que de les entasser, autant les
             passer à quelqu&apos;un qui les lira. »
           </blockquote>
-          <figcaption className="mt-4 font-serif italic text-muted">— Laura</figcaption>
+          <figcaption className="mt-4 font-serif italic text-muted">Laura</figcaption>
         </figure>
       </section>
 

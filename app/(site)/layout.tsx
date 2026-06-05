@@ -33,9 +33,6 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
               <Logo size={22} className="text-foreground" />
               <span className="font-serif text-lg">Le bazar de Laura</span>
             </div>
-            <p className="mt-2 max-w-sm text-sm text-muted">
-              Mes livres français d&apos;occasion, que je trimballe de marché en marché à Bangkok.
-            </p>
           </div>
           <p className="font-serif text-sm italic text-muted">Des livres déjà lus, prêts à repartir.</p>
         </div>

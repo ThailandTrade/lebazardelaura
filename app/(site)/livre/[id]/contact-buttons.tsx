@@ -16,7 +16,7 @@ export function ContactButtons({
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const lineId = process.env.NEXT_PUBLIC_LINE_ID;
   const details = conditionLabel ? `${conditionLabel}, ${priceLabel}` : priceLabel;
-  const message = `Coucou Laura ! Ton livre « ${title} » (${details}) me tente — il est encore dispo ?`;
+  const message = `Coucou Laura ! Ton livre « ${title} » (${details}) me tente. Il est encore dispo ?`;
 
   async function copyMessage() {
     try {

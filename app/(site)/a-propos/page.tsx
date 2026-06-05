@@ -10,7 +10,7 @@ export default function AProposPage() {
 
       <div className="mt-8 space-y-5 text-lg leading-relaxed text-foreground/90">
         <p>
-          Moi c&apos;est Laura. J&apos;habite à Bangkok et j&apos;ai un vrai faible pour les livres —
+          Moi c&apos;est Laura. J&apos;habite à Bangkok et j&apos;ai un vrai faible pour les livres,
           du coup j&apos;en ai accumulé bien trop. Le bazar, c&apos;est juste ma façon de les faire
           circuler : je les emmène sur des marchés, des petits événements, et je les rassemble ici.
         </p>
@@ -21,7 +21,7 @@ export default function AProposPage() {
         <p>
           À bientôt, peut-être entre deux cartons de livres.
         </p>
-        <p className="font-serif text-xl italic text-muted">— Laura</p>
+        <p className="font-serif text-xl italic text-muted">Laura</p>
       </div>
 
       <div className="mt-10 text-foreground">

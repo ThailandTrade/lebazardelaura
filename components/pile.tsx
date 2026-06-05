@@ -217,7 +217,7 @@ export function PilePage() {
           )}
           {lineId && (
             <a
-              href={`https://line.me/R/ti/p/${lineId}`}
+              href={`https://line.me/ti/p/${lineId}`}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-lg bg-[#06C755] px-5 py-3 text-center font-medium text-white transition hover:brightness-95"

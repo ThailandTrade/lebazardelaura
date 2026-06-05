@@ -135,6 +135,13 @@ function toVariant(b: PublicBook): BookVariant {
   return { id: b.id, condition: b.condition, price: b.price, quantity: b.quantity, status: b.status };
 }
 
+// Tri des exemplaires pour l'affichage public : meilleur état d'abord
+// (l'ordre de CONDITION_VALUES va du meilleur au moins bon), prix croissant en départage.
+function byBestCondition(a: BookVariant, b: BookVariant): number {
+  const r = CONDITION_VALUES.indexOf(a.condition) - CONDITION_VALUES.indexOf(b.condition);
+  return r !== 0 ? r : Number(a.price) - Number(b.price);
+}
+
 /**
  * Catalogue public regroupé : les lignes partageant un même ISBN sont fusionnées en
  * un seul « titre » (avec ses exemplaires/états). Les livres sans ISBN restent distincts.
@@ -159,7 +166,7 @@ export async function listPublicBookGroups(filter: CatalogueFilter = {}): Promis
   }
 
   for (const g of groups.values()) {
-    g.variants.sort((a, b) => Number(a.price) - Number(b.price));
+    g.variants.sort(byBestCondition);
   }
   return order.map((k) => groups.get(k)!);
 }
@@ -173,15 +180,14 @@ export async function getPublicBookGroup(id: string): Promise<PublicBookGroup | 
   if (rep.isbn) {
     variantRows = await query<PublicBook>(
       `select ${PUBLIC_COLUMNS} from books
-         where isbn = $1 and status in ('disponible','reserve') and quantity > 0
-         order by price asc, created_at desc`,
+         where isbn = $1 and status in ('disponible','reserve') and quantity > 0`,
       [rep.isbn],
     );
   } else {
     variantRows = [rep];
   }
 
-  const variants = variantRows.map(toVariant);
+  const variants = variantRows.map(toVariant).sort(byBestCondition);
   const minPrice = Math.min(...variants.map((v) => Number(v.price)));
   return { ...rep, variants, minPrice };
 }

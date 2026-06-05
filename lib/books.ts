@@ -325,7 +325,7 @@ export async function createBook(input: BookInput): Promise<string> {
        (isbn, title, subtitle, authors, publisher, published_date, description,
         cover_url, language, page_count, category, condition, price, status, notes, source, quantity,
         exit_date)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::book_status,$15,$16,$17,
         coalesce($18::timestamptz, case when $14 = 'vendu' then now() else null end))
      returning id`,
     [
@@ -344,7 +344,7 @@ export async function updateBook(id: string, input: BookInput): Promise<void> {
     `update books set
        isbn=$2, title=$3, subtitle=$4, authors=$5, publisher=$6, published_date=$7,
        description=$8, cover_url=$9, language=$10, page_count=$11, category=$12,
-       condition=$13, price=$14, status=$15, notes=$16, source=$17, quantity=$18,
+       condition=$13, price=$14, status=$15::book_status, notes=$16, source=$17, quantity=$18,
        exit_date = case when $15 = 'vendu' then coalesce(exit_date, now()) else null end
      where id=$1`,
     [
@@ -360,7 +360,7 @@ export async function setStatus(id: string, status: BookStatus): Promise<void> {
   if (!STATUS_VALUES.includes(status)) throw new Error("Statut invalide");
   // Passer à « vendu » horodate la sortie ; revenir en stock l'efface.
   await query(
-    `update books set status = $2,
+    `update books set status = $2::book_status,
        exit_date = case when $2 = 'vendu' then coalesce(exit_date, now()) else null end
      where id = $1`,
     [id, status],

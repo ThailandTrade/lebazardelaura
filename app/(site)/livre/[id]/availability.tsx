@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { conditionLabel, formatPrice } from "@/lib/constants";
+import { formatPrice } from "@/lib/constants";
+import { condLabel, type Dict, type Locale } from "@/lib/i18n";
 import type { BookVariant } from "@/lib/books";
 import { ContactButtons } from "./contact-buttons";
 import { AddToPileButton } from "@/components/pile";
@@ -10,10 +11,14 @@ export function Availability({
   variants,
   title,
   cover_url,
+  t,
+  locale,
 }: {
   variants: BookVariant[];
   title: string;
   cover_url: string | null;
+  t: Dict;
+  locale: Locale;
 }) {
   const [sel, setSel] = useState(0);
   const v = variants[sel] ?? variants[0];
@@ -21,7 +26,7 @@ export function Availability({
   const pileItem = {
     id: v.id,
     title,
-    conditionLabel: conditionLabel(v.condition),
+    conditionLabel: condLabel(v.condition, locale),
     priceLabel: formatPrice(v.price),
     cover_url,
   };
@@ -33,17 +38,17 @@ export function Availability({
         <>
           <div className="flex items-center gap-3">
             <span className="font-serif text-3xl text-accent">{formatPrice(v.price)}</span>
-            {v.status === "reserve" && <ReservedBadge />}
+            {v.status === "reserve" && <ReservedBadge label={t.book_reserved} />}
           </div>
           <p className="mt-2 text-sm text-muted">
-            État : {conditionLabel(v.condition)}
-            {v.quantity > 1 ? " · j'en ai plusieurs" : ""}
+            {t.avail_state} {condLabel(v.condition, locale)}
+            {v.quantity > 1 ? t.avail_several : ""}
           </p>
         </>
       ) : (
         // Plusieurs états : état sur la ligne du haut, prix juste en dessous. Cliquable.
         <>
-          <p className="text-sm text-muted">Je l&apos;ai en {variants.length} états :</p>
+          <p className="text-sm text-muted">{t.avail_states(variants.length)}</p>
           <div className="mt-3 flex flex-wrap gap-2.5">
             {variants.map((variant, i) => {
               const active = i === sel;
@@ -58,8 +63,8 @@ export function Availability({
                   }`}
                 >
                   <span className="block text-sm">
-                    {conditionLabel(variant.condition)}
-                    {variant.status === "reserve" ? " · réservé" : ""}
+                    {condLabel(variant.condition, locale)}
+                    {variant.status === "reserve" ? t.avail_reserved : ""}
                   </span>
                   <span className="mt-0.5 block font-serif text-2xl text-accent">{formatPrice(variant.price)}</span>
                 </button>
@@ -70,17 +75,17 @@ export function Availability({
       )}
 
       <div className="mt-8 flex flex-col gap-3">
-        <AddToPileButton item={pileItem} />
-        <ContactButtons title={title} priceLabel={formatPrice(v.price)} conditionLabel={conditionLabel(v.condition)} />
+        <AddToPileButton item={pileItem} t={t} />
+        <ContactButtons title={title} priceLabel={formatPrice(v.price)} conditionLabel={condLabel(v.condition, locale)} t={t} />
       </div>
     </div>
   );
 }
 
-function ReservedBadge() {
+function ReservedBadge({ label }: { label: string }) {
   return (
     <span className="rounded-sm bg-foreground/85 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-white">
-      Réservé
+      {label}
     </span>
   );
 }

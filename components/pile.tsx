@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import type { Dict } from "@/lib/i18n";
 
 // « Pile à lire » : une sélection de livres côté visiteur, façon panier mais sans
 // paiement. Stockée dans le navigateur (localStorage), pas de compte.
@@ -89,17 +90,17 @@ export function usePile(): PileCtx {
 }
 
 // Bouton de l'en-tête (haut à droite), façon panier avec compteur.
-export function PileNavButton() {
+export function PileNavButton({ label }: { label: string }) {
   const { items, ready } = usePile();
   const n = items.length;
   return (
     <Link
       href="/ma-pile"
-      className={`relative inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[15px] transition ${
+      className={`relative inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-center text-[15px] transition ${
         ready && n > 0 ? "border-accent bg-accent/10" : "border-line bg-surface hover:border-accent"
       }`}
     >
-      Ma pile à lire
+      <span className="whitespace-nowrap">{label}</span>
       {ready && n > 0 && (
         <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-medium text-white">
           {n}
@@ -110,7 +111,7 @@ export function PileNavButton() {
 }
 
 // Bouton d'ajout (sur la fiche livre).
-export function AddToPileButton({ item }: { item: PileItem }) {
+export function AddToPileButton({ item, t }: { item: PileItem; t: Dict }) {
   const { add, remove, has, ready } = usePile();
   const inPile = ready && has(item.id);
   return (
@@ -123,13 +124,13 @@ export function AddToPileButton({ item }: { item: PileItem }) {
           : "bg-accent text-white hover:bg-accent-dark"
       }`}
     >
-      {inPile ? "✓ Dans ma pile à lire" : "Ajouter à ma pile à lire"}
+      {inPile ? t.pile_in : t.pile_add}
     </button>
   );
 }
 
 // Corps de la page /ma-pile (récapitulatif de la sélection).
-export function PilePage() {
+export function PilePage({ t }: { t: Dict }) {
   const { items, remove, clear, ready } = usePile();
   const [copied, setCopied] = useState(false);
 
@@ -137,10 +138,7 @@ export function PilePage() {
   const lineId = process.env.NEXT_PUBLIC_LINE_ID;
 
   const lines = items.map((i) => `• « ${i.title} » (${i.conditionLabel}, ${i.priceLabel})`).join("\n");
-  const message =
-    items.length > 0
-      ? `Coucou Laura ! J'aimerais bien ces livres :\n${lines}\nIls sont encore dispos ?`
-      : "";
+  const message = items.length > 0 ? t.pile_msg(lines) : "";
 
   async function copyMessage() {
     try {
@@ -153,18 +151,18 @@ export function PilePage() {
   }
 
   if (!ready) {
-    return <p className="mt-8 text-muted">Un instant…</p>;
+    return <p className="mt-8 text-muted">{t.pile_loading}</p>;
   }
 
   if (items.length === 0) {
     return (
       <div className="mt-8 rounded-xl border border-dashed border-line p-8 text-center text-muted">
-        <p>Ta pile à lire est vide pour l&apos;instant.</p>
+        <p>{t.pile_empty}</p>
         <Link
           href="/catalogue"
           className="mt-4 inline-block rounded-full bg-accent px-6 py-2.5 font-medium text-white transition hover:bg-accent-dark"
         >
-          Voir ma bibliothèque
+          {t.pile_empty_cta}
         </Link>
       </div>
     );
@@ -194,16 +192,14 @@ export function PilePage() {
               onClick={() => remove(i.id)}
               className="shrink-0 text-sm text-muted underline-offset-2 hover:text-red-600 hover:underline"
             >
-              Retirer
+              {t.pile_remove}
             </button>
           </li>
         ))}
       </ul>
 
       <div className="mt-6 rounded-xl border border-line bg-surface-2/60 p-4 sm:p-5">
-        <p className="mb-3 font-serif text-lg">
-          {items.length} livre{items.length > 1 ? "s" : ""} dans ta pile. On en parle ?
-        </p>
+        <p className="mb-3 font-serif text-lg">{t.pile_talk(items.length)}</p>
         <div className="flex flex-col gap-2.5">
           {whatsapp && (
             <a
@@ -212,7 +208,7 @@ export function PilePage() {
               rel="noopener noreferrer"
               className="rounded-lg bg-[#25D366] px-5 py-3 text-center font-medium text-white transition hover:brightness-95"
             >
-              Envoyer ma pile sur WhatsApp
+              {t.pile_send_wa}
             </a>
           )}
           {lineId && (
@@ -222,7 +218,7 @@ export function PilePage() {
               rel="noopener noreferrer"
               className="rounded-lg bg-[#06C755] px-5 py-3 text-center font-medium text-white transition hover:brightness-95"
             >
-              M&apos;écrire sur Line
+              {t.contact_line}
             </a>
           )}
           <button
@@ -230,20 +226,20 @@ export function PilePage() {
             onClick={copyMessage}
             className="rounded-lg border border-line px-5 py-2.5 text-sm transition hover:bg-surface"
           >
-            {copied ? "Liste copiée ✓" : "Copier ma sélection"}
+            {copied ? t.pile_copied : t.pile_copy}
           </button>
           <button
             type="button"
             onClick={clear}
             className="self-start text-sm text-muted underline-offset-2 hover:text-red-600 hover:underline"
           >
-            Vider ma pile
+            {t.pile_clear}
           </button>
         </div>
 
         {(whatsapp || lineId) && (
           <div className="mt-5 border-t border-line pt-4">
-            <p className="mb-3 text-sm text-muted">Ou scanne pour m&apos;ajouter :</p>
+            <p className="mb-3 text-sm text-muted">{t.pile_scan}</p>
             <div className="flex flex-wrap gap-6">
               {whatsapp && (
                 <figure className="text-center">

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { formatPrice, conditionLabel } from "@/lib/constants";
+import { formatPrice } from "@/lib/constants";
+import { condLabel, type Dict, type Locale } from "@/lib/i18n";
 import type { PublicBookGroup } from "@/lib/books";
 
-export function BookCard({ book }: { book: PublicBookGroup }) {
+export function BookCard({ book, t, locale }: { book: PublicBookGroup; t: Dict; locale: Locale }) {
   const multi = book.variants.length > 1;
   return (
     <Link href={`/livre/${book.id}`} className="group flex flex-col">
@@ -22,7 +23,7 @@ export function BookCard({ book }: { book: PublicBookGroup }) {
         )}
         {book.status === "reserve" && (
           <span className="absolute left-2 top-2 rounded-sm bg-foreground/85 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white backdrop-blur-sm">
-            Réservé
+            {t.book_reserved}
           </span>
         )}
       </div>
@@ -37,13 +38,15 @@ export function BookCard({ book }: { book: PublicBookGroup }) {
         <p className="mt-1.5 flex items-baseline gap-2 text-sm">
           {multi ? (
             <>
-              <span className="font-semibold">dès {formatPrice(book.minPrice)}</span>
-              <span className="text-muted">· {book.variants.length} états</span>
+              <span className="font-semibold">
+                {t.card_from} {formatPrice(book.minPrice)}
+              </span>
+              <span className="text-muted">· {t.card_states(book.variants.length)}</span>
             </>
           ) : (
             <>
               <span className="font-semibold">{formatPrice(book.price)}</span>
-              <span className="text-muted">· {conditionLabel(book.condition)}</span>
+              <span className="text-muted">· {condLabel(book.condition, locale)}</span>
             </>
           )}
         </p>

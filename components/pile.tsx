@@ -240,6 +240,36 @@ export function PilePage() {
             Vider ma pile
           </button>
         </div>
+
+        {(whatsapp || lineId) && (
+          <div className="mt-5 border-t border-line pt-4">
+            <p className="mb-3 text-sm text-muted">Ou scanne pour m&apos;ajouter :</p>
+            <div className="flex flex-wrap gap-6">
+              {whatsapp && (
+                <figure className="text-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/contact/whatsapp.png"
+                    alt="QR WhatsApp de Laura"
+                    className="h-36 w-36 rounded-lg border border-line bg-white p-1.5"
+                  />
+                  <figcaption className="mt-1.5 text-xs text-muted">WhatsApp</figcaption>
+                </figure>
+              )}
+              {lineId && (
+                <figure className="text-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/contact/line.png"
+                    alt="QR Line de Laura"
+                    className="h-36 w-36 rounded-lg border border-line bg-white p-1.5"
+                  />
+                  <figcaption className="mt-1.5 text-xs text-muted">Line</figcaption>
+                </figure>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

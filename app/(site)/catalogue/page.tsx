@@ -1,4 +1,4 @@
-import { listPublicBooks } from "@/lib/books";
+import { listPublicBookGroups } from "@/lib/books";
 import { CATEGORIES } from "@/lib/constants";
 import { BookCard } from "@/components/book-card";
 
@@ -10,7 +10,7 @@ export default async function CataloguePage(props: {
   searchParams: Promise<{ category?: string; q?: string; min?: string; max?: string }>;
 }) {
   const sp = await props.searchParams;
-  const books = await listPublicBooks({
+  const books = await listPublicBookGroups({
     category: sp.category,
     q: sp.q,
     minPrice: sp.min ? Number(sp.min) : undefined,

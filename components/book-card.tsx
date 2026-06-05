@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { formatPrice, conditionLabel } from "@/lib/constants";
-import type { PublicBook } from "@/lib/books";
+import type { PublicBookGroup } from "@/lib/books";
 
-export function BookCard({ book }: { book: PublicBook }) {
+export function BookCard({ book }: { book: PublicBookGroup }) {
+  const multi = book.variants.length > 1;
   return (
     <Link href={`/livre/${book.id}`} className="group flex flex-col">
       <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-surface-2 shadow-[0_1px_2px_rgba(43,37,29,0.12)] ring-1 ring-line transition duration-200 group-hover:-translate-y-1 group-hover:shadow-[0_10px_24px_rgba(43,37,29,0.16)]">
@@ -34,8 +35,17 @@ export function BookCard({ book }: { book: PublicBook }) {
           <p className="mt-0.5 line-clamp-1 text-sm text-muted">{book.authors.join(", ")}</p>
         )}
         <p className="mt-1.5 flex items-baseline gap-2 text-sm">
-          <span className="font-semibold">{formatPrice(book.price)}</span>
-          <span className="text-muted">· {conditionLabel(book.condition)}</span>
+          {multi ? (
+            <>
+              <span className="font-semibold">dès {formatPrice(book.minPrice)}</span>
+              <span className="text-muted">· {book.variants.length} états</span>
+            </>
+          ) : (
+            <>
+              <span className="font-semibold">{formatPrice(book.price)}</span>
+              <span className="text-muted">· {conditionLabel(book.condition)}</span>
+            </>
+          )}
         </p>
       </div>
     </Link>

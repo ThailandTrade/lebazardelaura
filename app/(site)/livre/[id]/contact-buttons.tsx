@@ -2,12 +2,21 @@
 
 import { useState } from "react";
 
-export function ContactButtons({ title, priceLabel }: { title: string; priceLabel: string }) {
+export function ContactButtons({
+  title,
+  priceLabel,
+  conditionLabel,
+}: {
+  title: string;
+  priceLabel: string;
+  conditionLabel?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const lineId = process.env.NEXT_PUBLIC_LINE_ID;
-  const message = `Bonjour Laura ! Je suis intéressé(e) par « ${title} » (${priceLabel}) vu sur Le bazar de Laura.`;
+  const details = conditionLabel ? `${conditionLabel}, ${priceLabel}` : priceLabel;
+  const message = `Bonjour Laura ! Je suis intéressé(e) par « ${title} » (${details}) vu sur Le bazar de Laura.`;
 
   async function copyMessage() {
     try {

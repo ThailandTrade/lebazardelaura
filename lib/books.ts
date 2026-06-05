@@ -34,6 +34,32 @@ export type Book = {
 // Vue publique : jamais les notes internes, jamais les livres vendus/masqués.
 export type PublicBook = Omit<Book, "notes" | "status"> & { status: "disponible" | "reserve" };
 
+// Un « exemplaire » disponible d'un titre = une ligne books (un état, un prix, une quantité).
+export type BookVariant = {
+  id: string;
+  condition: BookCondition;
+  price: string;
+  quantity: number;
+  status: "disponible" | "reserve";
+};
+
+// Un titre regroupé pour l'affichage public : métadonnées (du plus récent) + ses
+// exemplaires disponibles (mêmes ISBN), triés par prix croissant.
+export type PublicBookGroup = PublicBook & {
+  variants: BookVariant[];
+  minPrice: number;
+};
+
+// Ligne de stock minimale pour le flux de scan admin (détection de doublon).
+export type StockLine = {
+  id: string;
+  title: string;
+  condition: BookCondition;
+  price: string;
+  quantity: number;
+  status: BookStatus;
+};
+
 export type BookInput = {
   isbn: string | null;
   title: string;
@@ -105,6 +131,61 @@ export async function getPublicBook(id: string): Promise<PublicBook | null> {
   return rows[0] ?? null;
 }
 
+function toVariant(b: PublicBook): BookVariant {
+  return { id: b.id, condition: b.condition, price: b.price, quantity: b.quantity, status: b.status };
+}
+
+/**
+ * Catalogue public regroupé : les lignes partageant un même ISBN sont fusionnées en
+ * un seul « titre » (avec ses exemplaires/états). Les livres sans ISBN restent distincts.
+ */
+export async function listPublicBookGroups(filter: CatalogueFilter = {}): Promise<PublicBookGroup[]> {
+  const rows = await listPublicBooks(filter); // déjà filtré + trié par created_at desc
+  const groups = new Map<string, PublicBookGroup>();
+  const order: string[] = [];
+
+  for (const r of rows) {
+    const key = r.isbn ? `isbn:${r.isbn}` : `id:${r.id}`;
+    let g = groups.get(key);
+    if (!g) {
+      // Représentant = première ligne rencontrée = la plus récente (métadonnées affichées).
+      g = { ...r, variants: [], minPrice: Number(r.price) };
+      groups.set(key, g);
+      order.push(key);
+    }
+    g.variants.push(toVariant(r));
+    g.minPrice = Math.min(g.minPrice, Number(r.price));
+    if (r.status === "disponible") g.status = "disponible"; // dispo si au moins un exemplaire l'est
+  }
+
+  for (const g of groups.values()) {
+    g.variants.sort((a, b) => Number(a.price) - Number(b.price));
+  }
+  return order.map((k) => groups.get(k)!);
+}
+
+/** Fiche publique regroupée : le titre + tous ses exemplaires disponibles (même ISBN). */
+export async function getPublicBookGroup(id: string): Promise<PublicBookGroup | null> {
+  const rep = await getPublicBook(id);
+  if (!rep) return null;
+
+  let variantRows: PublicBook[];
+  if (rep.isbn) {
+    variantRows = await query<PublicBook>(
+      `select ${PUBLIC_COLUMNS} from books
+         where isbn = $1 and status in ('disponible','reserve') and quantity > 0
+         order by price asc, created_at desc`,
+      [rep.isbn],
+    );
+  } else {
+    variantRows = [rep];
+  }
+
+  const variants = variantRows.map(toVariant);
+  const minPrice = Math.min(...variants.map((v) => Number(v.price)));
+  return { ...rep, variants, minPrice };
+}
+
 // --- Admin (toutes colonnes, tous statuts) ---
 
 export async function listAdminBooks(opts: { q?: string; status?: string } = {}): Promise<Book[]> {
@@ -141,6 +222,15 @@ export async function getBook(id: string): Promise<Book | null> {
 export async function findByIsbn(isbn: string): Promise<Book | null> {
   const rows = await query<Book>("select * from books where isbn = $1 limit 1", [isbn]);
   return rows[0] ?? null;
+}
+
+/** Toutes les lignes de stock d'un ISBN (pour proposer +1 ou un autre état au scan). */
+export async function findAllByIsbn(isbn: string): Promise<StockLine[]> {
+  return query<StockLine>(
+    `select id, title, condition, price, quantity, status from books
+       where isbn = $1 order by created_at desc`,
+    [isbn],
+  );
 }
 
 export async function createBook(input: BookInput): Promise<string> {

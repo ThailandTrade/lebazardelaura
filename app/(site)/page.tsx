@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { listPublicBooks } from "@/lib/books";
+import { listPublicBookGroups } from "@/lib/books";
 import { BookCard } from "@/components/book-card";
 import { BookshelfDoodle } from "@/components/marks";
 
 export default async function HomePage() {
-  const latest = (await listPublicBooks()).slice(0, 10);
+  const latest = (await listPublicBookGroups()).slice(0, 10);
 
   return (
     <main>

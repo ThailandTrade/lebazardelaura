@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublicBook } from "@/lib/books";
-import { formatPrice, categoryLabel, conditionLabel } from "@/lib/constants";
-import { ContactButtons } from "./contact-buttons";
+import { getPublicBook, getPublicBookGroup } from "@/lib/books";
+import { categoryLabel } from "@/lib/constants";
+import { Availability } from "./availability";
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -12,7 +12,7 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
 
 export default async function BookPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
-  const book = await getPublicBook(id);
+  const book = await getPublicBookGroup(id);
   if (!book) notFound();
 
   return (
@@ -45,30 +45,14 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
           {book.subtitle && <p className="mt-2 font-serif text-lg italic text-muted">{book.subtitle}</p>}
           {book.authors.length > 0 && <p className="mt-3 text-[15px]">{book.authors.join(", ")}</p>}
 
-          <div className="mt-6 flex items-center gap-3">
-            <span className="font-serif text-3xl text-accent">{formatPrice(book.price)}</span>
-            {book.status === "reserve" && (
-              <span className="rounded-sm bg-foreground/85 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-white">
-                Réservé
-              </span>
-            )}
-          </div>
+          <Availability variants={book.variants} title={book.title} />
 
-          {book.quantity > 1 && (
-            <p className="mt-2 text-sm text-muted">Plusieurs exemplaires disponibles.</p>
-          )}
-
-          <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
-            <Meta label="État" value={conditionLabel(book.condition)} />
+          <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
             {book.publisher && <Meta label="Éditeur" value={book.publisher} />}
             {book.published_date && <Meta label="Parution" value={book.published_date} />}
             {book.page_count ? <Meta label="Pages" value={String(book.page_count)} /> : null}
             {book.isbn && <Meta label="ISBN" value={book.isbn} />}
           </dl>
-
-          <div className="mt-8">
-            <ContactButtons title={book.title} priceLabel={formatPrice(book.price)} />
-          </div>
         </div>
       </div>
 

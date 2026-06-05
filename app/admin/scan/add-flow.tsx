@@ -1,16 +1,24 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { BarcodeScanner } from "./barcode-scanner";
 import { BookForm, type BookFormInitial } from "../book-form";
-import { statusLabel } from "@/lib/constants";
+import { adjustQuantityAction } from "../book-actions";
+import { statusLabel, conditionLabel, formatPrice } from "@/lib/constants";
 
 type Mode = "scan" | "manual" | "loading" | "dup" | "form";
-type Existing = { id: string; title: string; status: string };
+type StockLine = {
+  id: string;
+  title: string;
+  condition: string;
+  price: string;
+  quantity: number;
+  status: string;
+};
 type ApiResult = {
   isbn: string;
-  existing: Existing | null;
+  existing: StockLine[];
   lookup: { source: string | null; data: Record<string, unknown> | null };
 };
 
@@ -56,7 +64,7 @@ function initialFromLookup(isbn: string | undefined, lookup: ApiResult["lookup"]
 export function AddBookFlow({ createAction }: { createAction: (formData: FormData) => void }) {
   const [mode, setMode] = useState<Mode>("scan");
   const [initial, setInitial] = useState<BookFormInitial>({});
-  const [dup, setDup] = useState<Existing | null>(null);
+  const [dups, setDups] = useState<StockLine[]>([]);
   const [note, setNote] = useState<string | null>(null);
   const lastResult = useRef<ApiResult | null>(null);
 
@@ -74,8 +82,8 @@ export function AddBookFlow({ createAction }: { createAction: (formData: FormDat
       }
       const data: ApiResult = await res.json();
       lastResult.current = data;
-      if (data.existing) {
-        setDup(data.existing);
+      if (data.existing && data.existing.length > 0) {
+        setDups(data.existing);
         setMode("dup");
         return;
       }
@@ -126,23 +134,25 @@ export function AddBookFlow({ createAction }: { createAction: (formData: FormDat
         </div>
       )}
 
-      {mode === "dup" && dup && (
+      {mode === "dup" && dups.length > 0 && (
         <div className="py-6">
-          <h1 className="mb-4 font-serif text-2xl">Déjà en stock</h1>
-          <div className="rounded-xl border border-line bg-surface-2/60 p-4">
-            <p className="font-serif text-lg">« {dup.title} »</p>
-            <p className="mt-1 text-sm text-muted">Statut : {statusLabel(dup.status)}</p>
-            <div className="mt-4 flex flex-col gap-2">
-              <Link href={`/admin/livre/${dup.id}`} className="rounded-lg bg-accent px-5 py-3 text-center font-medium text-white">
-                Modifier ce livre
-              </Link>
-              <button onClick={addAnyway} className="rounded-lg border border-line px-5 py-2.5 text-sm">
-                Ajouter quand même un autre exemplaire
-              </button>
-              <button onClick={() => setMode("scan")} className="text-sm text-muted underline-offset-2 hover:underline">
-                ← Scanner un autre
-              </button>
-            </div>
+          <h1 className="mb-1 font-serif text-2xl">Déjà en stock</h1>
+          <p className="mb-4 text-sm text-muted">
+            « {dups[0].title} » — {dups.length} {dups.length > 1 ? "états en stock" : "état en stock"}.
+            Ajoute un exemplaire (+1) au bon état, ou crée une version dans un autre état.
+          </p>
+          <div className="flex flex-col gap-2">
+            {dups.map((l) => (
+              <DupLine key={l.id} line={l} />
+            ))}
+          </div>
+          <div className="mt-5 flex flex-col gap-2">
+            <button onClick={addAnyway} className="rounded-lg bg-accent px-5 py-3 text-center font-medium text-white">
+              Ajouter dans un autre état
+            </button>
+            <button onClick={() => setMode("scan")} className="text-sm text-muted underline-offset-2 hover:underline">
+              ← Scanner un autre
+            </button>
           </div>
         </div>
       )}
@@ -158,6 +168,47 @@ export function AddBookFlow({ createAction }: { createAction: (formData: FormDat
           <BookForm action={createAction} initial={initial} submitLabel="Ajouter au stock" />
         </div>
       )}
+    </div>
+  );
+}
+
+function DupLine({ line }: { line: StockLine }) {
+  const [pending, start] = useTransition();
+  const [qty, setQty] = useState(line.quantity);
+  const [added, setAdded] = useState(false);
+
+  function addOne() {
+    setQty((q) => q + 1);
+    setAdded(true);
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(40);
+    start(() => {
+      void adjustQuantityAction(line.id, 1);
+    });
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">
+          {conditionLabel(line.condition)} · {formatPrice(line.price)}
+        </p>
+        <p className="text-xs text-muted">
+          {statusLabel(line.status)} · {qty} en stock{added ? " · ajouté ✓" : ""}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-3">
+        <button
+          type="button"
+          onClick={addOne}
+          disabled={pending}
+          className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+        >
+          +1
+        </button>
+        <Link href={`/admin/livre/${line.id}`} className="text-sm text-accent underline-offset-2 hover:underline">
+          Modifier
+        </Link>
+      </div>
     </div>
   );
 }

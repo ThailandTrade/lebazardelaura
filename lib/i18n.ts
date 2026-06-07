@@ -197,6 +197,8 @@ const CAT_EN: Record<string, string> = {
   sf_fantasy: "Sci-Fi / Fantasy",
   bd_manga: "Comics / Manga",
   jeunesse: "Children's",
+  enfants: "Kids",
+  romans_jeunesse: "Young-adult novels",
   documentaire: "Non-fiction",
   essai_bio: "Essay / Biography",
   cuisine_loisirs: "Cooking / Hobbies",

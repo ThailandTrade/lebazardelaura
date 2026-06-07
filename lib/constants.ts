@@ -6,6 +6,8 @@ export const CATEGORIES = [
   { value: "sf_fantasy", label: "SF / Fantasy" },
   { value: "bd_manga", label: "BD / Manga" },
   { value: "jeunesse", label: "Jeunesse" },
+  { value: "enfants", label: "Enfants" },
+  { value: "romans_jeunesse", label: "Romans Jeunesse" },
   { value: "documentaire", label: "Documentaire" },
   { value: "essai_bio", label: "Essai / Biographie" },
   { value: "cuisine_loisirs", label: "Cuisine / Loisirs" },

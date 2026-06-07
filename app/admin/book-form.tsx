@@ -232,12 +232,21 @@ export function BookForm({
           )}
         </div>
         <div className="flex flex-col justify-end gap-2">
-          <label className="cursor-pointer rounded-md border border-line bg-surface px-3 py-2 text-sm transition hover:bg-surface-2">
-            {uploading ? "Envoi…" : "Prendre / choisir une photo"}
+          <label className="cursor-pointer rounded-md border border-line bg-surface px-3 py-2 text-center text-sm transition hover:bg-surface-2">
+            {uploading ? "Envoi…" : "Prendre une photo"}
             <input
               type="file"
               accept="image/*"
               capture="environment"
+              onChange={onCoverChange}
+              className="hidden"
+            />
+          </label>
+          <label className="cursor-pointer rounded-md border border-line bg-surface px-3 py-2 text-center text-sm transition hover:bg-surface-2">
+            {uploading ? "Envoi…" : "Choisir une image"}
+            <input
+              type="file"
+              accept="image/*"
               onChange={onCoverChange}
               className="hidden"
             />

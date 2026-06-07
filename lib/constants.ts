@@ -31,7 +31,7 @@ export const STATUSES = [
   { value: "masque", label: "Masqué" },
 ] as const;
 
-export const QUICK_PRICES = [80, 120, 150, 180, 230] as const;
+export const QUICK_PRICES = [60, 80, 100, 120, 150, 190, 230] as const;
 
 export type BookCategory = (typeof CATEGORIES)[number]["value"];
 export type BookCondition = (typeof CONDITIONS)[number]["value"];

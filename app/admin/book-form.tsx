@@ -166,6 +166,7 @@ export function BookForm({
           language: d.language ?? prev.language,
           page_count: d.page_count != null ? String(d.page_count) : prev.page_count,
           cover_url: d.cover_url ?? prev.cover_url,
+          category: d.category ?? prev.category,
           source: result.source ?? "manuel",
         }));
         const sourceLabel =

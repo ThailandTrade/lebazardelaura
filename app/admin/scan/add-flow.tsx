@@ -44,7 +44,7 @@ function initialFromLookup(isbn: string | undefined, lookup: ApiResult["lookup"]
     | {
         title?: string; subtitle?: string | null; authors?: string[]; publisher?: string | null;
         published_date?: string | null; description?: string | null; language?: string | null;
-        page_count?: number | null; cover_url?: string | null;
+        page_count?: number | null; cover_url?: string | null; category?: string | null;
       };
   return {
     isbn: isbn ?? "",
@@ -57,6 +57,7 @@ function initialFromLookup(isbn: string | undefined, lookup: ApiResult["lookup"]
     language: d?.language ?? "fr",
     page_count: d?.page_count ?? null,
     cover_url: d?.cover_url ?? "",
+    category: d?.category ?? undefined,
     source: lookup?.source ?? "manuel",
   };
 }

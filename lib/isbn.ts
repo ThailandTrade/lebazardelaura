@@ -1,6 +1,7 @@
 // Lookup des métadonnées d'un livre à partir de l'ISBN.
 // Cascade : Google Books → BnF (SRU/UNIMARC) → Open Library → null.
 // On s'arrête au premier succès. Toujours côté serveur (CORS + fallbacks centralisés).
+import { suggestCategory, type BookCategory } from "@/lib/constants";
 
 export type IsbnLookupData = {
   isbn: string;
@@ -13,6 +14,7 @@ export type IsbnLookupData = {
   cover_url: string | null;
   language: string | null;
   page_count: number | null;
+  category?: BookCategory | null; // suggestion (Google Books) ; absent ailleurs
 };
 
 export type IsbnSource = "google_books" | "bnf" | "open_library";
@@ -82,6 +84,7 @@ type GoogleVolume = {
     description?: string;
     pageCount?: number;
     language?: string;
+    categories?: string[];
     imageLinks?: { thumbnail?: string; smallThumbnail?: string };
   };
 };
@@ -106,6 +109,7 @@ async function lookupGoogleBooks(isbn: string): Promise<IsbnLookupData | null> {
     cover_url: cleanGoogleCover(info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail),
     language: info.language ?? null,
     page_count: typeof info.pageCount === "number" ? info.pageCount : null,
+    category: suggestCategory(info.categories),
   };
 }
 

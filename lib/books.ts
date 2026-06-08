@@ -128,7 +128,8 @@ export async function listPublicBooks(filter: CatalogueFilter = {}): Promise<Pub
   const where: string[] = ["status in ('disponible','reserve')", "quantity > 0"];
   const params: unknown[] = [];
 
-  if (filter.category && CATEGORY_VALUES.includes(filter.category as BookCategory)) {
+  const byCategory = !!(filter.category && CATEGORY_VALUES.includes(filter.category as BookCategory));
+  if (byCategory) {
     params.push(filter.category);
     where.push(`category = $${params.length}`);
   }
@@ -146,10 +147,14 @@ export async function listPublicBooks(filter: CatalogueFilter = {}): Promise<Pub
     where.push(`price <= $${params.length}`);
   }
 
+  // Catégorie sélectionnée → tri alphabétique (par titre, insensible à la casse).
+  // Sinon, on garde l'ordre « derniers arrivés ».
+  const orderBy = byCategory ? "lower(title) asc, created_at desc" : "created_at desc";
+
   return query<PublicBook>(
     `select ${PUBLIC_COLUMNS} from books
        where ${where.join(" and ")}
-       order by created_at desc`,
+       order by ${orderBy}`,
     params,
   );
 }

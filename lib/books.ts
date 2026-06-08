@@ -147,9 +147,11 @@ export async function listPublicBooks(filter: CatalogueFilter = {}): Promise<Pub
     where.push(`price <= $${params.length}`);
   }
 
-  // Catégorie sélectionnée → tri alphabétique (par titre, insensible à la casse).
-  // Sinon, on garde l'ordre « derniers arrivés ».
-  const orderBy = byCategory ? "lower(title) asc, created_at desc" : "created_at desc";
+  // Catégorie sélectionnée → tri par auteur (1er auteur) puis par titre, insensible à
+  // la casse ; livres sans auteur en dernier. Sinon, on garde l'ordre « derniers arrivés ».
+  const orderBy = byCategory
+    ? "lower(authors[1]) asc nulls last, lower(title) asc, created_at desc"
+    : "created_at desc";
 
   return query<PublicBook>(
     `select ${PUBLIC_COLUMNS} from books

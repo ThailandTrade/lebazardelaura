@@ -50,6 +50,7 @@ const messages = {
     cat_filter: "Filtrer",
     cat_count: "{n} livre{s} en ce moment",
     cat_empty: "Rien ne correspond, là. Essaie d'élargir un peu.",
+    see_more: "Voir plus →",
 
     card_from: "dès",
     card_states: "{n} états",
@@ -132,6 +133,7 @@ const messages = {
     cat_filter: "Filter",
     cat_count: "{n} book{s} right now",
     cat_empty: "Nothing matches right now. Try widening your search.",
+    see_more: "See more →",
 
     card_from: "from",
     card_states: "{n} conditions",

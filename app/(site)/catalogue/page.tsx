@@ -1,4 +1,5 @@
-import { listPublicBookGroups } from "@/lib/books";
+import Link from "next/link";
+import { listPublicBookGroups, type PublicBookGroup } from "@/lib/books";
 import { CATEGORIES } from "@/lib/constants";
 import { BookCard } from "@/components/book-card";
 import { getServerLocale } from "@/lib/i18n-server";
@@ -7,6 +8,7 @@ import { getDict, catLabel, fmt, plural } from "@/lib/i18n";
 export const metadata = { title: "Ma bibliothèque — Le bazar de Laura" };
 
 const field = "rounded-md border border-line bg-surface px-3 py-2 text-[15px] placeholder:text-muted/70";
+const PREVIEW = 6; // nombre de livres montrés par rayon (vue par catégories)
 
 export default async function CataloguePage(props: {
   searchParams: Promise<{ category?: string; q?: string; min?: string; max?: string }>;
@@ -14,12 +16,26 @@ export default async function CataloguePage(props: {
   const locale = await getServerLocale();
   const t = getDict(locale);
   const sp = await props.searchParams;
-  const books = await listPublicBookGroups({
-    category: sp.category,
-    q: sp.q,
-    minPrice: sp.min ? Number(sp.min) : undefined,
-    maxPrice: sp.max ? Number(sp.max) : undefined,
-  });
+  const filtered = !!(sp.category || sp.q || sp.min || sp.max);
+
+  // Vue par catégories (par défaut) : tous les livres, regroupés par catégorie.
+  const allGroups = filtered ? [] : await listPublicBookGroups();
+  const byCategory = new Map<string, PublicBookGroup[]>();
+  for (const g of allGroups) {
+    const arr = byCategory.get(g.category) ?? [];
+    arr.push(g);
+    byCategory.set(g.category, arr);
+  }
+
+  // Vue filtrée : grille classique triée (par auteur/titre si catégorie).
+  const books = filtered
+    ? await listPublicBookGroups({
+        category: sp.category,
+        q: sp.q,
+        minPrice: sp.min ? Number(sp.min) : undefined,
+        maxPrice: sp.max ? Number(sp.max) : undefined,
+      })
+    : [];
 
   return (
     <main className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
@@ -49,15 +65,60 @@ export default async function CataloguePage(props: {
         </div>
       </form>
 
-      <p className="mb-6 text-sm text-muted">{fmt(t.cat_count, { n: books.length, s: plural(books.length) })}</p>
-
-      {books.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-line p-8 text-center text-muted">{t.cat_empty}</p>
+      {filtered ? (
+        // --- Vue filtrée : grille ---
+        <>
+          <p className="mb-6 text-sm text-muted">{fmt(t.cat_count, { n: books.length, s: plural(books.length) })}</p>
+          {books.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-line p-8 text-center text-muted">{t.cat_empty}</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {books.map((b) => (
+                <BookCard key={b.id} book={b} t={t} locale={locale} />
+              ))}
+            </div>
+          )}
+        </>
       ) : (
-        <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {books.map((b) => (
-            <BookCard key={b.id} book={b} t={t} locale={locale} />
-          ))}
+        // --- Vue par catégories : un rayon par catégorie qui a des livres ---
+        <div className="flex flex-col gap-12">
+          {CATEGORIES.filter((c) => byCategory.has(c.value)).map((c) => {
+            const list = byCategory.get(c.value)!;
+            const shown = list.slice(0, PREVIEW);
+            const hasMore = list.length > PREVIEW;
+            return (
+              <section key={c.value}>
+                <div className="mb-4 flex items-baseline justify-between gap-4">
+                  <h2 className="rule-accent font-serif text-2xl">{catLabel(c.value, locale)}</h2>
+                  {hasMore && (
+                    <Link
+                      href={`/catalogue?category=${c.value}`}
+                      className="shrink-0 text-sm text-muted underline-offset-4 hover:text-accent hover:underline"
+                    >
+                      {t.see_more}
+                    </Link>
+                  )}
+                </div>
+                <div className="-mx-1 flex gap-5 overflow-x-auto px-1 pb-2">
+                  {shown.map((b) => (
+                    <div key={b.id} className="w-[136px] shrink-0 sm:w-[150px]">
+                      <BookCard book={b} t={t} locale={locale} />
+                    </div>
+                  ))}
+                  {hasMore && (
+                    <Link
+                      href={`/catalogue?category=${c.value}`}
+                      className="flex w-[136px] shrink-0 flex-col sm:w-[150px]"
+                    >
+                      <div className="flex aspect-[2/3] items-center justify-center rounded-md border border-dashed border-line bg-surface-2/40 px-3 text-center text-sm font-medium text-accent transition hover:bg-surface-2">
+                        {t.see_more}
+                      </div>
+                    </Link>
+                  )}
+                </div>
+              </section>
+            );
+          })}
         </div>
       )}
     </main>

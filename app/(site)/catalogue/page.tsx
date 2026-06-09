@@ -10,6 +10,10 @@ export const metadata = { title: "Ma bibliothèque — Le bazar de Laura" };
 const field = "rounded-md border border-line bg-surface px-3 py-2 text-[15px] placeholder:text-muted/70";
 const PREVIEW = 6; // nombre de livres montrés par rayon (vue par catégories)
 
+// Ordre d'affichage des rayons sur la page bibliothèque : ces catégories d'abord,
+// le reste ensuite (dans l'ordre de CATEGORIES).
+const SECTION_ORDER = ["enfants", "jeunesse", "romans_jeunesse", "bd_manga", "roman"];
+
 export default async function CataloguePage(props: {
   searchParams: Promise<{ category?: string; q?: string; min?: string; max?: string }>;
 }) {
@@ -26,6 +30,11 @@ export default async function CataloguePage(props: {
     arr.push(g);
     byCategory.set(g.category, arr);
   }
+  // Rayons à afficher, dans l'ordre voulu : SECTION_ORDER d'abord, puis le reste.
+  const orderedCats = [
+    ...SECTION_ORDER,
+    ...CATEGORIES.map((c) => c.value).filter((v) => !SECTION_ORDER.includes(v)),
+  ].filter((v) => byCategory.has(v));
 
   // Vue filtrée : grille classique triée (par auteur/titre si catégorie).
   const books = filtered
@@ -84,17 +93,17 @@ export default async function CataloguePage(props: {
       ) : (
         // --- Vue par catégories : un rayon par catégorie qui a des livres ---
         <div className="flex flex-col gap-12">
-          {CATEGORIES.filter((c) => byCategory.has(c.value)).map((c) => {
-            const list = byCategory.get(c.value)!;
+          {orderedCats.map((cat) => {
+            const list = byCategory.get(cat)!;
             const shown = list.slice(0, PREVIEW);
             const hasMore = list.length > PREVIEW;
             return (
-              <section key={c.value}>
+              <section key={cat}>
                 <div className="mb-4 flex items-baseline justify-between gap-4">
-                  <h2 className="rule-accent font-serif text-2xl">{catLabel(c.value, locale)}</h2>
+                  <h2 className="rule-accent font-serif text-2xl">{catLabel(cat, locale)}</h2>
                   {hasMore && (
                     <Link
-                      href={`/catalogue?category=${c.value}`}
+                      href={`/catalogue?category=${cat}`}
                       className="shrink-0 text-sm text-muted underline-offset-4 hover:text-accent hover:underline"
                     >
                       {t.see_more}
@@ -109,7 +118,7 @@ export default async function CataloguePage(props: {
                   ))}
                   {hasMore && (
                     <Link
-                      href={`/catalogue?category=${c.value}`}
+                      href={`/catalogue?category=${cat}`}
                       className="flex w-[136px] shrink-0 flex-col sm:w-[150px]"
                     >
                       <div className="flex aspect-[2/3] items-center justify-center rounded-md border border-dashed border-line bg-surface-2/40 px-3 text-center text-sm font-medium text-accent transition hover:bg-surface-2">

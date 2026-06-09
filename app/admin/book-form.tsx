@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { CATEGORIES, CONDITIONS, STATUSES, QUICK_PRICES, FORMATS } from "@/lib/constants";
 import type { IsbnLookupResult } from "@/lib/isbn";
 import { CoverPicker } from "./cover-picker";
+import { SubmitButton } from "./submit-button";
 
 // Un exemplaire (ou groupe d'exemplaires identiques) : son état, son prix, sa
 // disponibilité et le nombre d'exemplaires dans cet état. `id` = ligne books
@@ -432,9 +433,7 @@ export function BookForm({
       </Field>
 
       <div className="flex flex-col gap-2">
-        <button type="submit" className="rounded-md bg-accent px-5 py-3 text-base font-medium text-white transition hover:bg-accent-dark">
-          {submitLabel}
-        </button>
+        <SubmitButton label={submitLabel} />
         {sellAction && (
           <button
             type="submit"

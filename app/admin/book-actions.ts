@@ -158,10 +158,11 @@ export async function updateBookAction(id: string, form: FormData): Promise<void
     if (!submittedIds.has(sid)) await deleteBook(sid);
   }
 
+  // Pas de redirection : on reste sur la fiche (le revalidate rafraîchit les listes).
   revalidatePath("/admin");
   revalidatePath("/catalogue");
+  revalidatePath(`/admin/livre/${id}`);
   revalidatePath(`/livre/${id}`);
-  redirect("/admin");
 }
 
 export async function quickStatusAction(id: string, status: BookStatus): Promise<void> {

@@ -257,7 +257,8 @@ export async function listAdminBooks(
     where.push(`category = $${params.length}`);
   }
   return query<Book>(
-    `select * from books ${where.length ? `where ${where.join(" and ")}` : ""} order by created_at desc`,
+    `select * from books ${where.length ? `where ${where.join(" and ")}` : ""}
+       order by lower(title) asc, created_at desc`,
     params,
   );
 }

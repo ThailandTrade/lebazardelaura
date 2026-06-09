@@ -54,18 +54,9 @@ export default async function CataloguePage(props: {
       </header>
 
       <form className="mb-10 rounded-xl border border-line bg-surface-2/60 p-4 sm:p-5">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {sp.category && <input type="hidden" name="category" value={sp.category} />}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <input name="q" defaultValue={sp.q ?? ""} placeholder={t.cat_search} className={`col-span-2 sm:col-span-1 ${field}`} />
-          <select name="category" defaultValue={sp.category ?? ""} className={field}>
-            <option value="">{t.cat_all}</option>
-            {[...CATEGORIES]
-              .sort((a, b) => catLabel(a.value, locale).localeCompare(catLabel(b.value, locale), locale))
-              .map((c) => (
-                <option key={c.value} value={c.value}>
-                  {catLabel(c.value, locale)}
-                </option>
-              ))}
-          </select>
           <input name="min" defaultValue={sp.min ?? ""} inputMode="numeric" placeholder={t.cat_min} className={field} />
           <input name="max" defaultValue={sp.max ?? ""} inputMode="numeric" placeholder={t.cat_max} className={field} />
         </div>

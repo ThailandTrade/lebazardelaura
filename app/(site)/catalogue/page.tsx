@@ -79,7 +79,13 @@ export default async function CataloguePage(props: {
       {filtered ? (
         // --- Vue filtrée : grille ---
         <>
-          <p className="mb-6 text-sm text-muted">{fmt(t.cat_count, { n: books.length, s: plural(books.length) })}</p>
+          <Link
+            href="/catalogue"
+            className="text-sm text-muted underline-offset-4 hover:text-accent hover:underline"
+          >
+            {t.book_back}
+          </Link>
+          <p className="mb-6 mt-3 text-sm text-muted">{fmt(t.cat_count, { n: books.length, s: plural(books.length) })}</p>
           {books.length === 0 ? (
             <p className="rounded-lg border border-dashed border-line p-8 text-center text-muted">{t.cat_empty}</p>
           ) : (

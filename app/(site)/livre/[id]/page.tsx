@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicBook, getPublicBookGroup } from "@/lib/books";
 import { getServerLocale } from "@/lib/i18n-server";
 import { getDict, catLabel, fmtLabel } from "@/lib/i18n";
 import { Availability } from "./availability";
+import { BackLink } from "@/components/back-link";
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -20,9 +20,7 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
 
   return (
     <main className="mx-auto max-w-4xl px-5 py-10 sm:px-6">
-      <Link href="/catalogue" className="text-sm text-muted underline-offset-4 hover:underline">
-        {t.book_back}
-      </Link>
+      <BackLink label={t.book_back} fallback="/catalogue" />
 
       <div className="mt-6 grid gap-10 sm:grid-cols-[260px_1fr]">
         {/* Couverture */}

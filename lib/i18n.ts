@@ -206,6 +206,8 @@ const CAT_EN: Record<string, string> = {
   documentaire: "Non-fiction",
   essai_bio: "Essay / Biography",
   cuisine_loisirs: "Cooking / Hobbies",
+  jeux_activite: "Games / Activities",
+  voyage: "Travel",
   art_beaux_livres: "Art / Illustrated",
   poesie_theatre: "Poetry / Theatre",
   magazine: "Magazine",

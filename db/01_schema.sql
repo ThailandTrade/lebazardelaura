@@ -6,14 +6,16 @@ do $$ begin
   create type book_category as enum (
     'roman', 'polar_thriller', 'sf_fantasy', 'bd_manga', 'jeunesse',
     'enfants', 'romans_jeunesse',
-    'documentaire', 'essai_bio', 'cuisine_loisirs', 'art_beaux_livres',
-    'poesie_theatre', 'magazine', 'scolaire_langues', 'autre'
+    'documentaire', 'essai_bio', 'cuisine_loisirs', 'jeux_activite', 'voyage',
+    'art_beaux_livres', 'poesie_theatre', 'magazine', 'scolaire_langues', 'autre'
   );
 exception when duplicate_object then null; end $$;
 
 -- Bases existantes : ajoute les valeurs si absentes.
 alter type book_category add value if not exists 'enfants' after 'jeunesse';
 alter type book_category add value if not exists 'romans_jeunesse' after 'enfants';
+alter type book_category add value if not exists 'jeux_activite';
+alter type book_category add value if not exists 'voyage';
 
 -- État du livre
 do $$ begin

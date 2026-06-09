@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicBook, getPublicBookGroup } from "@/lib/books";
 import { getServerLocale } from "@/lib/i18n-server";
-import { getDict, catLabel } from "@/lib/i18n";
+import { getDict, catLabel, fmtLabel } from "@/lib/i18n";
 import { Availability } from "./availability";
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
@@ -52,6 +52,7 @@ export default async function BookPage(props: { params: Promise<{ id: string }> 
 
           <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
             {book.publisher && <Meta label={t.book_publisher} value={book.publisher} />}
+            {book.format && <Meta label={t.book_format} value={fmtLabel(book.format, locale)} />}
             {book.published_date && <Meta label={t.book_published} value={book.published_date} />}
             {book.page_count ? <Meta label={t.book_pages} value={String(book.page_count)} /> : null}
             {book.isbn && <Meta label="ISBN" value={book.isbn} />}

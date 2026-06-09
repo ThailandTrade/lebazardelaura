@@ -2,7 +2,7 @@
 // importable côté serveur ET client. La langue est choisie via un cookie « lang ».
 // IMPORTANT : le dictionnaire ne contient QUE des chaînes (pas de fonctions) afin de
 // pouvoir être passé en prop à des composants client. L'interpolation se fait via fmt().
-import { categoryLabel, conditionLabel } from "./constants";
+import { categoryLabel, conditionLabel, formatLabel } from "./constants";
 
 export type Locale = "fr" | "en";
 export const DEFAULT_LOCALE: Locale = "fr";
@@ -60,6 +60,7 @@ const messages = {
     book_publisher: "Éditeur",
     book_published: "Parution",
     book_pages: "Pages",
+    book_format: "Format",
     book_condition: "État",
     book_reserved: "Réservé",
 
@@ -143,6 +144,7 @@ const messages = {
     book_publisher: "Publisher",
     book_published: "Published",
     book_pages: "Pages",
+    book_format: "Format",
     book_condition: "Condition",
     book_reserved: "Reserved",
 
@@ -223,4 +225,12 @@ export function catLabel(value: string, locale: Locale): string {
 }
 export function condLabel(value: string, locale: Locale): string {
   return locale === "en" ? COND_EN[value] ?? value : conditionLabel(value);
+}
+
+const FORMAT_EN: Record<string, string> = {
+  poche: "Paperback",
+  grand_format: "Large format",
+};
+export function fmtLabel(value: string, locale: Locale): string {
+  return locale === "en" ? FORMAT_EN[value] ?? value : formatLabel(value);
 }

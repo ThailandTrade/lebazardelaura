@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CATEGORIES, CONDITIONS, STATUSES, QUICK_PRICES } from "@/lib/constants";
+import { CATEGORIES, CONDITIONS, STATUSES, QUICK_PRICES, FORMATS } from "@/lib/constants";
 import type { IsbnLookupResult } from "@/lib/isbn";
 import { CoverPicker } from "./cover-picker";
 
@@ -30,6 +30,7 @@ type FormState = {
   page_count: string;
   cover_url: string;
   category: string;
+  format: string;
   notes: string;
   source: string;
   variants: Variant[];
@@ -47,6 +48,7 @@ export type BookFormInitial = Partial<{
   page_count: number | null;
   cover_url: string | null;
   category: string;
+  format: string | null;
   condition: string;
   status: string;
   price: string | number;
@@ -78,6 +80,7 @@ function toState(init: BookFormInitial): FormState {
     page_count: init.page_count != null ? String(init.page_count) : "",
     cover_url: init.cover_url ?? "",
     category: init.category ?? "autre",
+    format: init.format ?? "",
     notes: init.notes ?? "",
     source: init.source ?? "manuel",
     variants:
@@ -305,6 +308,17 @@ export function BookForm({
             .map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
       </Field>
+
+      {s.category === "roman" && (
+        <Field label="Format">
+          <select name="format" value={s.format} onChange={(e) => set("format", e.target.value)} className={input}>
+            <option value="">— à préciser —</option>
+            {FORMATS.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+        </Field>
+      )}
 
       {/* Exemplaires : un état / prix / disponibilité / quantité par ligne.
           Même état → garde une seule ligne avec la bonne quantité. */}

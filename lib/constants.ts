@@ -33,23 +33,33 @@ export const STATUSES = [
   { value: "masque", label: "Masqué" },
 ] as const;
 
+// Format (surtout pour les romans) : poche vs grand format.
+export const FORMATS = [
+  { value: "poche", label: "Poche" },
+  { value: "grand_format", label: "Grand format" },
+] as const;
+
 export const QUICK_PRICES = [60, 80, 100, 120, 150, 190, 230] as const;
 
 export type BookCategory = (typeof CATEGORIES)[number]["value"];
 export type BookCondition = (typeof CONDITIONS)[number]["value"];
 export type BookStatus = (typeof STATUSES)[number]["value"];
+export type BookFormat = (typeof FORMATS)[number]["value"];
 
 export const CATEGORY_VALUES = CATEGORIES.map((c) => c.value);
 export const CONDITION_VALUES = CONDITIONS.map((c) => c.value);
 export const STATUS_VALUES = STATUSES.map((s) => s.value);
+export const FORMAT_VALUES = FORMATS.map((f) => f.value);
 
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((c) => [c.value, c.label]));
 const CONDITION_LABELS = Object.fromEntries(CONDITIONS.map((c) => [c.value, c.label]));
 const STATUS_LABELS = Object.fromEntries(STATUSES.map((s) => [s.value, s.label]));
+const FORMAT_LABELS = Object.fromEntries(FORMATS.map((f) => [f.value, f.label]));
 
 export const categoryLabel = (v: string) => CATEGORY_LABELS[v] ?? v;
 export const conditionLabel = (v: string) => CONDITION_LABELS[v] ?? v;
 export const statusLabel = (v: string) => STATUS_LABELS[v] ?? v;
+export const formatLabel = (v: string) => FORMAT_LABELS[v] ?? v;
 
 /** Prix en THB, à la thaïlandaise (montant puis ฿), sans décimales superflues. */
 export function formatPrice(price: number | string): string {

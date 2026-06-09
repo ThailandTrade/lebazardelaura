@@ -27,6 +27,7 @@ export type Book = {
   quantity: number;
   notes: string | null;
   source: string | null;
+  format: string | null; // poche / grand_format (surtout pour les romans)
   entry_date: string | null; // date d'entrée en stock
   exit_date: string | null;  // date de sortie (vente) ; null tant qu'en stock
   created_at: string;
@@ -109,12 +110,13 @@ export type BookInput = {
   quantity: number;
   notes: string | null;
   source: string | null;
+  format: string | null;
   exit_date?: string | null; // optionnel : forcé à now() à la vente, sinon déduit du statut
 };
 
 const PUBLIC_COLUMNS = `id, isbn, title, subtitle, authors, publisher, published_date,
   description, cover_url, language, page_count, category, condition, price, status,
-  quantity, source, created_at, updated_at`;
+  quantity, source, format, created_at, updated_at`;
 
 export type CatalogueFilter = {
   category?: string;
@@ -337,16 +339,16 @@ export async function createBook(input: BookInput): Promise<string> {
     `insert into books
        (isbn, title, subtitle, authors, publisher, published_date, description,
         cover_url, language, page_count, category, condition, price, status, notes, source, quantity,
-        exit_date)
+        exit_date, format)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::book_status,$15,$16,$17,
-        coalesce($18::timestamptz, case when $14 = 'vendu' then now() else null end))
+        coalesce($18::timestamptz, case when $14 = 'vendu' then now() else null end), $19)
      returning id`,
     [
       input.isbn, input.title, input.subtitle, input.authors, input.publisher,
       input.published_date, input.description, input.cover_url, input.language,
       input.page_count, input.category, input.condition, input.price, input.status,
       input.notes, input.source, input.quantity,
-      input.exit_date ?? null,
+      input.exit_date ?? null, input.format ?? null,
     ],
   );
   return rows[0].id;
@@ -358,13 +360,14 @@ export async function updateBook(id: string, input: BookInput): Promise<void> {
        isbn=$2, title=$3, subtitle=$4, authors=$5, publisher=$6, published_date=$7,
        description=$8, cover_url=$9, language=$10, page_count=$11, category=$12,
        condition=$13, price=$14, status=$15::book_status, notes=$16, source=$17, quantity=$18,
+       format=$19,
        exit_date = case when $15 = 'vendu' then coalesce(exit_date, now()) else null end
      where id=$1`,
     [
       id, input.isbn, input.title, input.subtitle, input.authors, input.publisher,
       input.published_date, input.description, input.cover_url, input.language,
       input.page_count, input.category, input.condition, input.price, input.status,
-      input.notes, input.source, input.quantity,
+      input.notes, input.source, input.quantity, input.format ?? null,
     ],
   );
 }

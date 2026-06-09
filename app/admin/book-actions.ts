@@ -18,7 +18,7 @@ import {
 } from "@/lib/books";
 import { normalizeIsbn } from "@/lib/isbn";
 import { localizeCover } from "@/lib/images";
-import type { BookCondition, BookStatus } from "@/lib/constants";
+import { FORMAT_VALUES, type BookCondition, type BookStatus } from "@/lib/constants";
 
 function str(form: FormData, key: string): string | null {
   const v = form.get(key);
@@ -43,6 +43,8 @@ function parseBookBase(form: FormData): BookBase {
 
   const isbnRaw = str(form, "isbn");
   const category = str(form, "category") ?? "autre";
+  const formatRaw = str(form, "format");
+  const format = formatRaw && (FORMAT_VALUES as readonly string[]).includes(formatRaw) ? formatRaw : null;
 
   return {
     isbn: isbnRaw ? (normalizeIsbn(isbnRaw) ?? isbnRaw) : null,
@@ -58,6 +60,7 @@ function parseBookBase(form: FormData): BookBase {
     category: isValidCategory(category) ? category : "autre",
     notes: str(form, "notes"),
     source: str(form, "source"),
+    format,
   };
 }
 

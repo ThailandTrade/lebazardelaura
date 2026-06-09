@@ -48,6 +48,7 @@ create table if not exists books (
   quantity       int not null default 1,        -- nombre d'exemplaires
   notes          text,                          -- notes INTERNES (jamais exposées publiquement)
   source         text,                          -- 'google_books' | 'open_library' | 'manuel'
+  format         text,                          -- 'poche' | 'grand_format' (surtout romans)
   entry_date     timestamptz default now(),     -- date d'entrée en stock
   exit_date      timestamptz,                   -- date de sortie (vente) ; null tant qu'en stock
   created_at     timestamptz default now(),
@@ -57,6 +58,7 @@ create table if not exists books (
 -- Bases existantes : ajoute les colonnes si absentes, et initialise entry_date.
 alter table books add column if not exists entry_date timestamptz default now();
 alter table books add column if not exists exit_date  timestamptz;
+alter table books add column if not exists format     text;
 update books set entry_date = created_at where entry_date is null;
 
 create index if not exists books_status_idx on books (status);

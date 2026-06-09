@@ -8,7 +8,7 @@ import { getDict, catLabel, fmt, plural } from "@/lib/i18n";
 export const metadata = { title: "Ma bibliothèque — Le bazar de Laura" };
 
 const field = "rounded-md border border-line bg-surface px-3 py-2 text-[15px] placeholder:text-muted/70";
-const PREVIEW = 6; // nombre de livres montrés par rayon (vue par catégories)
+const PREVIEW = 5; // livres montrés par rayon (+ « voir plus » = 6 → tient sur une ligne)
 
 // Ordre d'affichage des rayons sur la page bibliothèque : ces catégories d'abord,
 // le reste ensuite (dans l'ordre de CATEGORIES).
@@ -110,18 +110,13 @@ export default async function CataloguePage(props: {
                     </Link>
                   )}
                 </div>
-                <div className="-mx-1 flex gap-5 overflow-x-auto px-1 pb-2">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-6">
                   {shown.map((b) => (
-                    <div key={b.id} className="w-[136px] shrink-0 sm:w-[150px]">
-                      <BookCard book={b} t={t} locale={locale} />
-                    </div>
+                    <BookCard key={b.id} book={b} t={t} locale={locale} />
                   ))}
                   {hasMore && (
-                    <Link
-                      href={`/catalogue?category=${cat}`}
-                      className="flex w-[136px] shrink-0 flex-col sm:w-[150px]"
-                    >
-                      <div className="flex aspect-[2/3] items-center justify-center rounded-md border border-dashed border-line bg-surface-2/40 px-3 text-center text-sm font-medium text-accent transition hover:bg-surface-2">
+                    <Link href={`/catalogue?category=${cat}`} className="flex flex-col">
+                      <div className="flex aspect-[2/3] items-center justify-center rounded-md border border-dashed border-line bg-surface-2/40 px-2 text-center text-sm font-medium text-accent transition hover:bg-surface-2">
                         {t.see_more}
                       </div>
                     </Link>

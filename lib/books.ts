@@ -236,7 +236,9 @@ export async function getPublicBookGroup(id: string): Promise<PublicBookGroup | 
 
 // --- Admin (toutes colonnes, tous statuts) ---
 
-export async function listAdminBooks(opts: { q?: string; status?: string } = {}): Promise<Book[]> {
+export async function listAdminBooks(
+  opts: { q?: string; status?: string; category?: string } = {},
+): Promise<Book[]> {
   const where: string[] = [];
   const params: unknown[] = [];
   if (opts.q && opts.q.trim()) {
@@ -247,6 +249,10 @@ export async function listAdminBooks(opts: { q?: string; status?: string } = {})
   if (opts.status && STATUS_VALUES.includes(opts.status as BookStatus)) {
     params.push(opts.status);
     where.push(`status = $${params.length}`);
+  }
+  if (opts.category && CATEGORY_VALUES.includes(opts.category as BookCategory)) {
+    params.push(opts.category);
+    where.push(`category = $${params.length}`);
   }
   return query<Book>(
     `select * from books ${where.length ? `where ${where.join(" and ")}` : ""} order by created_at desc`,
@@ -260,7 +266,7 @@ export async function listAdminBooks(opts: { q?: string; status?: string } = {})
  * récente) porte les métadonnées et l'id de la fiche d'édition.
  */
 export async function listAdminBookGroups(
-  opts: { q?: string; status?: string } = {},
+  opts: { q?: string; status?: string; category?: string } = {},
 ): Promise<AdminBookGroup[]> {
   const rows = await listAdminBooks(opts); // triées created_at desc
   const groups = new Map<string, AdminBookGroup>();

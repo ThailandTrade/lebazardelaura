@@ -300,7 +300,9 @@ export function BookForm({
 
       <Field label="Catégorie">
         <select name="category" value={s.category} onChange={(e) => set("category", e.target.value)} className={input}>
-          {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          {[...CATEGORIES]
+            .sort((a, b) => a.label.localeCompare(b.label, "fr"))
+            .map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
       </Field>
 

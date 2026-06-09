@@ -49,11 +49,13 @@ export default async function CataloguePage(props: {
           <input name="q" defaultValue={sp.q ?? ""} placeholder={t.cat_search} className={`col-span-2 sm:col-span-1 ${field}`} />
           <select name="category" defaultValue={sp.category ?? ""} className={field}>
             <option value="">{t.cat_all}</option>
-            {CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {catLabel(c.value, locale)}
-              </option>
-            ))}
+            {[...CATEGORIES]
+              .sort((a, b) => catLabel(a.value, locale).localeCompare(catLabel(b.value, locale), locale))
+              .map((c) => (
+                <option key={c.value} value={c.value}>
+                  {catLabel(c.value, locale)}
+                </option>
+              ))}
           </select>
           <input name="min" defaultValue={sp.min ?? ""} inputMode="numeric" placeholder={t.cat_min} className={field} />
           <input name="max" defaultValue={sp.max ?? ""} inputMode="numeric" placeholder={t.cat_max} className={field} />

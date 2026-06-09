@@ -99,7 +99,10 @@ export default async function AdminDashboard(props: {
       ) : (
         // --- Vue par rayons : une section par catégorie qui a des livres ---
         <div className="flex flex-col gap-8">
-          {CATEGORIES.filter((c) => byCategory.has(c.value)).map((c) => {
+          {[...CATEGORIES]
+            .filter((c) => byCategory.has(c.value))
+            .sort((a, b) => a.label.localeCompare(b.label, "fr"))
+            .map((c) => {
             const list = byCategory.get(c.value)!;
             const shown = list.slice(0, PREVIEW);
             const hasMore = list.length > PREVIEW;

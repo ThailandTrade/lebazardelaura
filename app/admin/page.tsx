@@ -32,6 +32,15 @@ export default async function AdminDashboard(props: {
     return s ? `/admin?${s}` : "/admin";
   };
 
+  // Contexte de la vue filtrée, transmis aux fiches (flèches précédent/suivant).
+  const filterCtx = (() => {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (status) p.set("status", status);
+    if (category) p.set("category", category);
+    return p.toString();
+  })();
+
   // Vue par catégories (par défaut) : regrouper les titres par catégorie.
   const byCategory = new Map<string, AdminBookGroup[]>();
   if (!filtered) {
@@ -93,7 +102,7 @@ export default async function AdminDashboard(props: {
         // --- Vue filtrée : liste à plat ---
         <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface/50">
           {groups.map((g) => (
-            <StockItem key={g.id} g={g} />
+            <StockItem key={g.id} g={g} ctx={filterCtx} />
           ))}
         </ul>
       ) : (
@@ -123,7 +132,7 @@ export default async function AdminDashboard(props: {
                 </div>
                 <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface/50">
                   {shown.map((g) => (
-                    <StockItem key={g.id} g={g} />
+                    <StockItem key={g.id} g={g} ctx={`category=${c.value}`} />
                   ))}
                 </ul>
               </section>
@@ -135,12 +144,13 @@ export default async function AdminDashboard(props: {
   );
 }
 
-// Une ligne de stock (un titre, regroupant ses états).
-function StockItem({ g }: { g: AdminBookGroup }) {
+// Une ligne de stock (un titre, regroupant ses états). `ctx` = contexte de navigation
+// (rayon/recherche) transmis à la fiche pour les flèches précédent/suivant.
+function StockItem({ g, ctx }: { g: AdminBookGroup; ctx?: string }) {
   const single = g.variants.length === 1 ? g.variants[0] : null;
   return (
     <li className="px-3 py-2.5">
-      <Link href={`/admin/livre/${g.id}`} className="flex min-w-0 items-center gap-3">
+      <Link href={`/admin/livre/${g.id}${ctx ? `?${ctx}` : ""}`} className="flex min-w-0 items-center gap-3">
         <span className="h-16 w-11 shrink-0 overflow-hidden rounded bg-surface-2 ring-1 ring-line">
           {g.cover_url && (
             // eslint-disable-next-line @next/next/no-img-element

@@ -212,6 +212,7 @@ const CAT_EN: Record<string, string> = {
   poesie_theatre: "Poetry / Theatre",
   magazine: "Magazine",
   scolaire_langues: "School / Languages",
+  english_books: "English books",
   autre: "Other",
 };
 const COND_EN: Record<string, string> = {

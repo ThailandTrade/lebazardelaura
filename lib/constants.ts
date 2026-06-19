@@ -17,6 +17,7 @@ export const CATEGORIES = [
   { value: "poesie_theatre", label: "Poésie / Théâtre" },
   { value: "magazine", label: "Magazine" },
   { value: "scolaire_langues", label: "Scolaire / Langues" },
+  { value: "english_books", label: "Livres en anglais" },
   { value: "autre", label: "Autre" },
 ] as const;
 

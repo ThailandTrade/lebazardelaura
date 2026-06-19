@@ -76,6 +76,9 @@ export default async function CataloguePage(props: {
           >
             {t.book_back}
           </Link>
+          {sp.category && (
+            <h2 className="rule-accent mt-3 font-serif text-2xl">{catLabel(sp.category, locale)}</h2>
+          )}
           <p className="mb-6 mt-3 text-sm text-muted">{fmt(t.cat_count, { n: books.length, s: plural(books.length) })}</p>
           {books.length === 0 ? (
             <p className="rounded-lg border border-dashed border-line p-8 text-center text-muted">{t.cat_empty}</p>

@@ -276,7 +276,7 @@ export async function listAdminBooks(
   }
   return query<Book>(
     `select * from books ${where.length ? `where ${where.join(" and ")}` : ""}
-       order by lower(title) asc, created_at desc`,
+       order by lower(authors[1]) asc nulls last, lower(title) asc, created_at desc`,
     params,
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listAdminBookGroups, countByStatus, byAuthorThenTitle, type AdminBookGroup } from "@/lib/books";
+import { listAdminBookGroups, countByStatus, type AdminBookGroup } from "@/lib/books";
 import { CATEGORIES, formatPrice, categoryLabel, conditionLabel, statusLabel, STATUSES } from "@/lib/constants";
 import { StatusControl } from "./status-control";
 import { QuantityControl } from "./quantity-control";
@@ -18,9 +18,6 @@ export default async function AdminDashboard(props: {
     countByStatus(),
   ]);
   const totalRows = Object.values(counts).reduce((a, b) => a + b, 0);
-
-  // Rayon Roman : tri alphabétique par auteur puis titre (les autres restent par titre).
-  if (category === "roman") groups.sort(byAuthorThenTitle);
 
   const filters = [
     { value: "", label: "Tous", n: totalRows },
@@ -52,7 +49,6 @@ export default async function AdminDashboard(props: {
       arr.push(g);
       byCategory.set(g.category, arr);
     }
-    byCategory.get("roman")?.sort(byAuthorThenTitle); // rayon Roman : auteur puis titre
   }
 
   return (

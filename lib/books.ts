@@ -177,6 +177,19 @@ export async function getPublicBook(id: string): Promise<PublicBook | null> {
   return rows[0] ?? null;
 }
 
+// Tri alphabétique par auteur (1er auteur) puis par titre ; livres sans auteur en
+// dernier. Utilisé pour le rayon « Roman » côté site et admin.
+export function byAuthorThenTitle(
+  a: { authors: string[]; title: string },
+  b: { authors: string[]; title: string },
+): number {
+  const aa = (a.authors[0] ?? "").toLowerCase();
+  const ba = (b.authors[0] ?? "").toLowerCase();
+  if (!aa !== !ba) return aa ? -1 : 1; // sans auteur en dernier
+  const r = aa.localeCompare(ba, "fr");
+  return r !== 0 ? r : a.title.toLowerCase().localeCompare(b.title.toLowerCase(), "fr");
+}
+
 function toVariant(b: PublicBook): BookVariant {
   return { id: b.id, condition: b.condition, price: b.price, quantity: b.quantity, status: b.status };
 }

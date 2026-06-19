@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listPublicBookGroups, type PublicBookGroup } from "@/lib/books";
+import { listPublicBookGroups, byAuthorThenTitle, type PublicBookGroup } from "@/lib/books";
 import { CATEGORIES } from "@/lib/constants";
 import { BookCard } from "@/components/book-card";
 import { getServerLocale } from "@/lib/i18n-server";
@@ -30,6 +30,7 @@ export default async function CataloguePage(props: {
     arr.push(g);
     byCategory.set(g.category, arr);
   }
+  byCategory.get("roman")?.sort(byAuthorThenTitle); // rayon Roman : auteur puis titre
   // Rayons à afficher, dans l'ordre voulu : SECTION_ORDER d'abord, puis le reste.
   const orderedCats = [
     ...SECTION_ORDER,

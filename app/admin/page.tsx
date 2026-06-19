@@ -159,6 +159,9 @@ function StockItem({ g, ctx }: { g: AdminBookGroup; ctx?: string }) {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-serif font-medium">{g.title}</span>
+          {g.subtitle && (
+            <span className="block truncate text-sm italic text-muted">{g.subtitle}</span>
+          )}
           <span className="block truncate text-sm text-muted">
             {g.authors.join(", ") || "—"} · {categoryLabel(g.category)}
           </span>

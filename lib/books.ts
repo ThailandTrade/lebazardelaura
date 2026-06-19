@@ -84,6 +84,7 @@ export type AdminVariant = {
 export type AdminBookGroup = {
   id: string; // ligne représentante (lien vers la fiche d'édition)
   title: string;
+  subtitle: string | null;
   authors: string[];
   category: BookCategory;
   cover_url: string | null;
@@ -286,6 +287,7 @@ export async function listAdminBookGroups(
       g = {
         id: r.id,
         title: r.title,
+        subtitle: r.subtitle,
         authors: r.authors,
         category: r.category,
         cover_url: r.cover_url,
